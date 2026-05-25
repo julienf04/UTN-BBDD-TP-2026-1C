@@ -1,15 +1,15 @@
 -- ZONA DE TRABAJO GLOBAL INICIAL
 
+----------------------------------------------
+-- CREACION DEL ESQUEMA
+----------------------------------------------
 
-
-
-
-
-
-
-
-
-
+IF SCHEMA_ID('ESE_CU_ELE') IS NULL
+BEGIN
+    EXEC('CREATE SCHEMA ESE_CU_ELE');
+    PRINT(N'Esquema ESE_CU_ELE creado')
+END;
+GO
 
 
 
