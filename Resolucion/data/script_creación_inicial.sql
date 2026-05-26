@@ -93,30 +93,30 @@ PRINT(N'Esquema ESE_CU_ELE creado');
 
 
 CREATE TABLE ESE_CU_ELE.Pais (
-    pais_id BIGINT PRIMARY KEY,
-    nombre nvarchar(255)
+    pais_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    nombre nvarchar(255) UNIQUE
 )
 
 CREATE TABLE ESE_CU_ELE.Provincia (
-    provincia_id BIGINT PRIMARY KEY,
+    provincia_id BIGINT PRIMARY KEY IDENTITY(1,1),
     pais_id BIGINT, -- FK
-    nombre nvarchar(255)
+    nombre nvarchar(255) UNIQUE
 )
 
 CREATE TABLE ESE_CU_ELE.Ciudad (
-    ciudad_id BIGINT PRIMARY KEY,
+    ciudad_id BIGINT PRIMARY KEY IDENTITY(1,1),
     provincia_id BIGINT, -- FK
-    nombre nvarchar(255)
+    nombre nvarchar(255) UNIQUE
 )
 
 CREATE TABLE ESE_CU_ELE.Localidad (
-    localidad_id BIGINT PRIMARY KEY,
+    localidad_id BIGINT PRIMARY KEY IDENTITY(1,1),
     ciudad_id BIGINT, -- FK
-    nombre nvarchar(255)
+    nombre nvarchar(255) UNIQUE
 )
 
 CREATE TABLE ESE_CU_ELE.Cliente (
-    cliente_id BIGINT PRIMARY KEY,
+    cliente_id BIGINT PRIMARY KEY IDENTITY(1,1),
     localidad BIGINT, -- FK
     nombre nvarchar(255),
     apellido nvarchar(255),
@@ -160,7 +160,7 @@ CREATE TABLE ESE_CU_ELE.Solicitud_De_Cotizacion (
 )
 
 CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
-    detalle_solicitud_cotizacion_id BIGINT PRIMARY KEY,
+    detalle_solicitud_cotizacion_id BIGINT PRIMARY KEY IDENTITY(1,1),
     solicitud_cotizacion_id BIGINT, -- FK
     ciudad_id BIGINT, -- FK
     cant_dias_aprox INT,
