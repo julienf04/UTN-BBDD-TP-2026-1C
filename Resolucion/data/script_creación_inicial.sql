@@ -2081,31 +2081,31 @@ PRINT(N'Tablas creadas (sin las FK)');
 
 -- ZONA DE TRABAJO DEL VERDE
 
+ALTER TABLE ESE_CU_ELE.Provincia
+ADD CONSTRAINT FK_Provincia_Pais FOREIGN KEY(pais_id) REFERENCES ESE_CU_ELE.Pais(pais_id);
 
+ALTER TABLE ESE_CU_ELE.Ciudad
+ADD CONSTRAINT FK_Ciudad_Provincia FOREIGN KEY(provincia_id) REFERENCES ESE_CU_ELE.Provincia(provincia_id);
 
+ALTER TABLE ESE_CU_ELE.Localidad
+ADD CONSTRAINT FK_Localidad_Ciudad FOREIGN KEY(ciudad_id) REFERENCES ESE_CU_ELE.Ciudad(ciudad_id);
 
+ALTER TABLE ESE_CU_ELE.Cliente
+ADD CONSTRAINT FK_Cliente_Localidad FOREIGN KEY(localidad) REFERENCES ESE_CU_ELE.Localidad(localidad_id);
 
+ALTER TABLE ESE_CU_ELE.Agencia
+ADD CONSTRAINT FK_Agencia_Localidad FOREIGN KEY(localidad) REFERENCES ESE_CU_ELE.Localidad(localidad_id);
 
+ALTER TABLE ESE_CU_ELE.Agente
+ADD CONSTRAINT FK_Agente_Agencia FOREIGN KEY(agencia_nro) REFERENCES ESE_CU_ELE.Agencia(agencia_nro);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ALTER TABLE ESE_CU_ELE.Solicitud_De_Cotizacion
+ADD CONSTRAINT FK_SolicitudCotizacion_Cliente FOREIGN KEY(cliente_id) REFERENCES ESE_CU_ELE.Cliente(cliente_id),
+    CONSTRAINT FK_SolicitudCotizacion_Agente FOREIGN KEY(agente_legajo) REFERENCES ESE_CU_ELE.Agente(agente_legajo);
+    
+ALTER TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion
+ADD CONSTRAINT FK_DetalleSolicitudCotizacion_Solicitud_Cotizacion FOREIGN KEY(solicitud_cotizacion_id) 
+        REFERENCES ESE_CU_ELE.Solicitud_De_Cotizacion(nro_solicitud_id);
 
 
 
