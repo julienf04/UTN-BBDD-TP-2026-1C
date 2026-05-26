@@ -1,25 +1,31 @@
 ------------------ DIVISION DEL SCRIPT (las lineas son aproximadas) ------------------
+
 -- CREACION DEL ESQUEMA (linea 41)
+
 -- CREACION DE LAS TABLAS CON SUS CONSTRAINS (EXCEPTO LAS FK) (linea 89)
 ------ ZONA DE TRABAJO DEL VERDE (linea 92)
 ------ ZONA DE TRABAJO DEL ROJO (linea 592)
 ------ ZONA DE TRABAJO DEL AZUL (linea 1093)
 ------ ZONA DE TRABAJO DEL AMARILLO (linea 1593)
+
 -- CREACION DE LAS FK DE LAS TABLAS (linea 2079)
 ------ ZONA DE TRABAJO DEL VERDE (linea 2082)
 ------ ZONA DE TRABAJO DEL ROJO (linea 2582)
 ------ ZONA DE TRABAJO DEL AZUL (linea 3083)
 ------ ZONA DE TRABAJO DEL AMARILLO (linea 3583)
+
 -- CREACION DE TRIGGERS SOBRE LAS TABLAS (linea 4070)
 ------ ZONA DE TRABAJO DEL VERDE (linea 4073)
 ------ ZONA DE TRABAJO DEL ROJO (linea 4573)
 ------ ZONA DE TRABAJO DEL AZUL (linea 5074)
 ------ ZONA DE TRABAJO DEL AMARILLO (linea 5574)
+
 -- MIGRACION DE LOS DATOS (linea 6061)
 ------ ZONA DE TRABAJO DEL VERDE (linea 6069)
 ------ ZONA DE TRABAJO DEL ROJO (linea 6569)
 ------ ZONA DE TRABAJO DEL AZUL (linea 7070)
 ------ ZONA DE TRABAJO DEL AMARILLO (linea 7570)
+
 -- CREACION DE INDICES (linea 8065)
 ------ ZONA DE TRABAJO DEL VERDE (linea 8068)
 ------ ZONA DE TRABAJO DEL ROJO (linea 8568)
@@ -28,13 +34,7 @@
 
 
 
-
-
-
-
 -- ZONA DE TRABAJO GLOBAL INICIAL
-
-
 
 
 ----------------------------------------------
