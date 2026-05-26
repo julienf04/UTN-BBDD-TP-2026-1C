@@ -6067,78 +6067,79 @@ BEGIN
 -- ZONA DE TRABAJO DEL VERDE
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+INSERT INTO ESE_CU_ELE.Pais (nombre)
+    SELECT Aeropuerto_Salida_Pais FROM gd_esquema.Maestra
+    WHERE Aeropuerto_Salida_Pais IS NOT NULL
+    UNION
+    SELECT Aeropuerto_Llegada_Pais FROM gd_esquema.Maestra
+    WHERE Aeropuerto_Llegada_Pais IS NOT NULL
+    UNION
+    SELECT Aerolinea_Pais FROM gd_esquema.Maestra
+    WHERE Aerolinea_Pais IS NOT NULL
+    UNION
+    SELECT Hospedaje_Pais FROM gd_esquema.Maestra
+    WHERE Hospedaje_Pais IS NOT NULL
+
+
+INSERT INTO ESE_CU_ELE.Provincia (nombre)
+    SELECT Agencia_Provincia FROM gd_esquema.Maestra
+    WHERE Agencia_Provincia IS NOT NULL
+    UNION
+    SELECT Agente_Provincia FROM gd_esquema.Maestra
+    WHERE Agente_Provincia IS NOT NULL
+    UNION
+    SELECT Cliente_Provincia FROM gd_esquema.Maestra
+    WHERE Cliente_Provincia IS NOT NULL
+
+
+INSERT INTO ESE_CU_ELE.Ciudad (nombre, pais_id)
+SELECT viejo.ciudad_nombre, nuevo_pais.pais_id 
+	FROM (
+		SELECT
+            Aeropuerto_Salida_Ciudad AS ciudad_nombre, 
+            Aeropuerto_Salida_Pais AS pais_nombre
+            FROM gd_esquema.Maestra
+            WHERE Aeropuerto_Salida_Ciudad IS NOT NULL AND Aeropuerto_Salida_Pais IS NOT NULL
+		UNION
+		SELECT 
+            Aeropuerto_Llegada_Ciudad AS ciudad_nombre,
+            Aeropuerto_Llegada_Pais AS pais_nombre
+            FROM gd_esquema.Maestra
+            WHERE Aeropuerto_Llegada_Ciudad IS NOT NULL AND Aeropuerto_Llegada_Pais IS NOT NULL
+		UNION
+		SELECT 
+            Hospedaje_Ciudad AS ciudad_nombre,
+            Hospedaje_Pais AS pais_nombre
+            FROM gd_esquema.Maestra
+            WHERE Hospedaje_Ciudad IS NOT NULL AND Hospedaje_Pais IS NOT NULL
+	) AS viejo
+	INNER JOIN ESE_CU_ELE.Pais nuevo_pais
+	ON nuevo_pais.nombre = viejo.pais_nombre;
+
+
+INSERT INTO ESE_CU_ELE.Localidad (nombre, provincia_id)
+SELECT viejo.localidad_nombre, nuevo_provincia.provincia_id
+	FROM (
+		SELECT
+            Agencia_Localidad AS localidad_nombre, 
+            Agencia_Provincia AS provincia_nombre
+            FROM gd_esquema.Maestra
+            WHERE Agencia_Localidad IS NOT NULL AND Agencia_Provincia IS NOT NULL
+		UNION
+		SELECT 
+            Agente_Localidad AS localidad_nombre,
+            Agente_Provincia AS provincia_nombre
+            FROM gd_esquema.Maestra
+            WHERE Agente_Localidad IS NOT NULL AND Agente_Provincia IS NOT NULL
+		UNION
+		SELECT 
+            Cliente_Localidad AS localidad_nombre,
+            Cliente_Provincia AS provincia_nombre
+            FROM gd_esquema.Maestra
+            WHERE Cliente_Localidad IS NOT NULL AND Cliente_Provincia IS NOT NULL
+	) AS viejo
+	INNER JOIN ESE_CU_ELE.Provincia nuevo_provincia
+	ON nuevo_provincia.nombre = viejo.provincia_nombre;
 
 
 
@@ -8047,12 +8048,13 @@ BEGIN
 
 
 
-print('borrar este print despues, solo es para que no marque error porque tiene que haber al menos una sentencia dentro del bloque de la procedure');
+
 END;
 GO
 
 BEGIN TRY
     EXECUTE ESE_CU_ELE.migracion;
+    PRINT('Migracion de los datos hecha');
 END TRY
 BEGIN CATCH
     PRINT 'Hubo un error en la migracion: ' + ERROR_MESSAGE();
@@ -8064,7 +8066,6 @@ END CATCH;
 ----------------------------------------------
 
 -- ZONA DE TRABAJO DEL VERDE
-
 
 
 
