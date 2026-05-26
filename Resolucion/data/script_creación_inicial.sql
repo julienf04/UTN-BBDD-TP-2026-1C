@@ -99,20 +99,21 @@ CREATE TABLE ESE_CU_ELE.Pais (
 
 CREATE TABLE ESE_CU_ELE.Provincia (
     provincia_id BIGINT PRIMARY KEY IDENTITY(1,1),
-    pais_id BIGINT, -- FK
     nombre nvarchar(255) UNIQUE
 )
 
 CREATE TABLE ESE_CU_ELE.Ciudad (
     ciudad_id BIGINT PRIMARY KEY IDENTITY(1,1),
-    provincia_id BIGINT, -- FK
-    nombre nvarchar(255) UNIQUE
+    pais_id BIGINT, -- FK
+    nombre nvarchar(255),
+    CONSTRAINT unique_ciudad_nombre_paisid UNIQUE(pais_id, nombre)
 )
 
 CREATE TABLE ESE_CU_ELE.Localidad (
     localidad_id BIGINT PRIMARY KEY IDENTITY(1,1),
-    ciudad_id BIGINT, -- FK
-    nombre nvarchar(255) UNIQUE
+    provincia_id BIGINT, -- FK
+    nombre nvarchar(255),
+    CONSTRAINT unique_localidad_nombre_provinciaid UNIQUE(provincia_id, nombre)
 )
 
 CREATE TABLE ESE_CU_ELE.Cliente (
@@ -166,9 +167,6 @@ CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
     cant_dias_aprox INT,
     observaciones nvarchar(max)
 )
-
-
-
 
 
 
@@ -2081,14 +2079,12 @@ PRINT(N'Tablas creadas (sin las FK)');
 
 -- ZONA DE TRABAJO DEL VERDE
 
-ALTER TABLE ESE_CU_ELE.Provincia
-ADD CONSTRAINT FK_Provincia_Pais FOREIGN KEY(pais_id) REFERENCES ESE_CU_ELE.Pais(pais_id);
 
 ALTER TABLE ESE_CU_ELE.Ciudad
-ADD CONSTRAINT FK_Ciudad_Provincia FOREIGN KEY(provincia_id) REFERENCES ESE_CU_ELE.Provincia(provincia_id);
+ADD CONSTRAINT FK_Ciudad_Pais FOREIGN KEY(pais_id) REFERENCES ESE_CU_ELE.Pais(pais_id);
 
 ALTER TABLE ESE_CU_ELE.Localidad
-ADD CONSTRAINT FK_Localidad_Ciudad FOREIGN KEY(ciudad_id) REFERENCES ESE_CU_ELE.Ciudad(ciudad_id);
+ADD CONSTRAINT FK_Localidad_Provincia FOREIGN KEY(provincia_id) REFERENCES ESE_CU_ELE.Provincia(provincia_id);
 
 ALTER TABLE ESE_CU_ELE.Cliente
 ADD CONSTRAINT FK_Cliente_Localidad FOREIGN KEY(localidad) REFERENCES ESE_CU_ELE.Localidad(localidad_id);
@@ -2106,6 +2102,8 @@ ADD CONSTRAINT FK_SolicitudCotizacion_Cliente FOREIGN KEY(cliente_id) REFERENCES
 ALTER TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion
 ADD CONSTRAINT FK_DetalleSolicitudCotizacion_Solicitud_Cotizacion FOREIGN KEY(solicitud_cotizacion_id) 
         REFERENCES ESE_CU_ELE.Solicitud_De_Cotizacion(nro_solicitud_id);
+
+
 
 
 
