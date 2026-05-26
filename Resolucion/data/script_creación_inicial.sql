@@ -1,4 +1,4 @@
------------------- DIVISION DEL SCRIPT ------------------
+------------------ DIVISION DEL SCRIPT (las lineas son aproximadas) ------------------
 -- CREACION DEL ESQUEMA (linea 41)
 -- CREACION DE LAS TABLAS CON SUS CONSTRAINS (EXCEPTO LAS FK) (linea 89)
 ------ ZONA DE TRABAJO DEL VERDE (linea 92)
@@ -92,80 +92,80 @@ PRINT(N'Esquema ESE_CU_ELE creado');
 -- ZONA DE TRABAJO DEL VERDE
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+CREATE TABLE ESE_CU_ELE.Pais (
+    pais_id BIGINT PRIMARY KEY,
+    nombre nvarchar(255)
+)
+
+CREATE TABLE ESE_CU_ELE.Provincia (
+    provincia_id BIGINT PRIMARY KEY,
+    pais_id BIGINT, -- FK
+    nombre nvarchar(255)
+)
+
+CREATE TABLE ESE_CU_ELE.Ciudad (
+    ciudad_id BIGINT PRIMARY KEY,
+    provincia_id BIGINT, -- FK
+    nombre nvarchar(255)
+)
+
+CREATE TABLE ESE_CU_ELE.Localidad (
+    localidad_id BIGINT PRIMARY KEY,
+    ciudad_id BIGINT, -- FK
+    nombre nvarchar(255)
+)
+
+CREATE TABLE ESE_CU_ELE.Cliente (
+    cliente_id BIGINT PRIMARY KEY,
+    localidad BIGINT, -- FK
+    nombre nvarchar(255),
+    apellido nvarchar(255),
+    dni nvarchar(255),
+    telefono nvarchar(255),
+    mail nvarchar(255),
+    direccion nvarchar(255),
+    fecha_nacimiento DATE
+)
+
+CREATE TABLE ESE_CU_ELE.Agencia (
+    agencia_nro BIGINT PRIMARY KEY,
+    localidad BIGINT, -- FK
+    direccion nvarchar(255),
+    telefono nvarchar(255),
+    mail nvarchar(255)
+)
+
+CREATE TABLE ESE_CU_ELE.Agente (
+    agente_legajo BIGINT PRIMARY KEY,
+    agencia_nro BIGINT, -- FK
+    nombre nvarchar(255),
+    apellido nvarchar(255),
+    direccion nvarchar(255),
+    dni nvarchar(255),
+    telefono nvarchar(255),
+    mail nvarchar(255),
+    fecha_nacimiento DATE
+)
+
+CREATE TABLE ESE_CU_ELE.Solicitud_De_Cotizacion (
+    nro_solicitud_id BIGINT PRIMARY KEY,
+    cliente_id BIGINT, -- FK
+    agente_legajo BIGINT, -- FK
+    fecha_solicitud DATE,
+    fecha_inicio_tentativa DATE,
+    fecha_fin_tentativa DATE, 
+    cantidad_pasajeros INT,
+    observaciones nvarchar(max),
+    presupuesto_estimado decimal(18,2)
+)
+
+CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
+    detalle_solicitud_cotizacion_id BIGINT PRIMARY KEY,
+    solicitud_cotizacion_id BIGINT, -- FK
+    ciudad_id BIGINT, -- FK
+    cant_dias_aprox INT,
+    observaciones nvarchar(max)
+)
 
 
 
