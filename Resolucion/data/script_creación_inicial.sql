@@ -139,6 +139,7 @@ CREATE TABLE ESE_CU_ELE.Agencia (
 CREATE TABLE ESE_CU_ELE.Agente (
     agente_legajo BIGINT PRIMARY KEY,
     agencia_nro BIGINT, -- FK
+    localidad BIGINT, -- FK
     nombre nvarchar(255),
     apellido nvarchar(255),
     direccion nvarchar(255),
@@ -167,7 +168,6 @@ CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
     cant_dias_aprox INT,
     observaciones nvarchar(max)
 )
-
 
 
 
@@ -2093,7 +2093,8 @@ ALTER TABLE ESE_CU_ELE.Agencia
 ADD CONSTRAINT FK_Agencia_Localidad FOREIGN KEY(localidad) REFERENCES ESE_CU_ELE.Localidad(localidad_id);
 
 ALTER TABLE ESE_CU_ELE.Agente
-ADD CONSTRAINT FK_Agente_Agencia FOREIGN KEY(agencia_nro) REFERENCES ESE_CU_ELE.Agencia(agencia_nro);
+ADD CONSTRAINT FK_Agente_Agencia FOREIGN KEY(agencia_nro) REFERENCES ESE_CU_ELE.Agencia(agencia_nro),
+    CONSTRAINT FK_Agente_Localidad FOREIGN KEY(localidad) REFERENCES ESE_CU_ELE.Localidad(localidad_id);
 
 ALTER TABLE ESE_CU_ELE.Solicitud_De_Cotizacion
 ADD CONSTRAINT FK_SolicitudCotizacion_Cliente FOREIGN KEY(cliente_id) REFERENCES ESE_CU_ELE.Cliente(cliente_id),
@@ -2102,7 +2103,6 @@ ADD CONSTRAINT FK_SolicitudCotizacion_Cliente FOREIGN KEY(cliente_id) REFERENCES
 ALTER TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion
 ADD CONSTRAINT FK_DetalleSolicitudCotizacion_Solicitud_Cotizacion FOREIGN KEY(solicitud_cotizacion_id) 
         REFERENCES ESE_CU_ELE.Solicitud_De_Cotizacion(nro_solicitud_id);
-
 
 
 
@@ -6078,7 +6078,7 @@ INSERT INTO ESE_CU_ELE.Pais (nombre)
     WHERE Aerolinea_Pais IS NOT NULL
     UNION
     SELECT Hospedaje_Pais FROM gd_esquema.Maestra
-    WHERE Hospedaje_Pais IS NOT NULL
+    WHERE Hospedaje_Pais IS NOT NULL;
 
 
 INSERT INTO ESE_CU_ELE.Provincia (nombre)
@@ -6089,7 +6089,7 @@ INSERT INTO ESE_CU_ELE.Provincia (nombre)
     WHERE Agente_Provincia IS NOT NULL
     UNION
     SELECT Cliente_Provincia FROM gd_esquema.Maestra
-    WHERE Cliente_Provincia IS NOT NULL
+    WHERE Cliente_Provincia IS NOT NULL;
 
 
 INSERT INTO ESE_CU_ELE.Ciudad (nombre, pais_id)
@@ -6157,67 +6157,65 @@ INNER JOIN ESE_CU_ELE.Provincia nuevo_provincia
     ON nuevo_provincia.nombre = viejo.Cliente_Provincia
 INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
     ON nuevo_localidad.nombre = viejo.Cliente_Localidad AND nuevo_localidad.provincia_id = nuevo_provincia.provincia_id
+WHERE
+    nuevo_localidad.localidad_id IS NOT NULL
+    AND viejo.Cliente_Nombre IS NOT NULL
+    AND viejo.Cliente_Apellido IS NOT NULL
+    AND viejo.Cliente_Dni IS NOT NULL
+    AND viejo.Cliente_Tel IS NOT NULL
+    AND viejo.Cliente_Mail IS NOT NULL
+    AND viejo.Cliente_Direccion IS NOT NULL
+    AND viejo.Cliente_Fecha_Nac IS NOT NULL;
 
 
+INSERT INTO ESE_CU_ELE.Agencia (agencia_nro, localidad, direccion, telefono, mail)
+SELECT DISTINCT
+    viejo.Agencia_Nro_Agencia,
+    nuevo_localidad.localidad_id,
+    viejo.Agencia_Direccion,
+    viejo.Agencia_Telefono,
+    viejo.Agencia_Mail
+FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Provincia nuevo_provincia
+    ON nuevo_provincia.nombre = viejo.Agencia_Provincia
+INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
+    ON nuevo_localidad.nombre = viejo.Agencia_Localidad AND nuevo_localidad.provincia_id = nuevo_provincia.provincia_id
+WHERE
+    viejo.Agencia_Nro_Agencia IS NOT NULL
+    AND nuevo_localidad.localidad_id IS NOT NULL
+    AND viejo.Agencia_Direccion IS NOT NULL
+    AND viejo.Agencia_Telefono IS NOT NULL
+    AND viejo.Agencia_Mail IS NOT NULL;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+INSERT INTO ESE_CU_ELE.Agente (agente_legajo, agencia_nro, localidad, nombre, apellido, direccion, dni, telefono, mail, fecha_nacimiento)
+SELECT DISTINCT
+    viejo.Agente_Legajo,
+    viejo.Agencia_Nro_Agencia,
+    nuevo_localidad.localidad_id,
+    viejo.Agente_Nombre,
+    viejo.Agente_Apellido,
+    viejo.Agente_Direccion,
+    viejo.Agente_Dni,
+    viejo.Agente_Telefono,
+    viejo.Agente_Mail,
+    viejo.Agente_Fecha_Nac
+    FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Provincia nuevo_provincia
+    ON nuevo_provincia.nombre = viejo.Agente_Provincia
+INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
+    ON nuevo_localidad.nombre = viejo.Agente_Localidad AND nuevo_localidad.provincia_id = nuevo_provincia.provincia_id
+WHERE
+    viejo.Agente_Legajo IS NOT NULL
+    AND viejo.Agencia_Nro_Agencia IS NOT NULL
+    AND nuevo_localidad.localidad_id IS NOT NULL
+    AND viejo.Agente_Nombre IS NOT NULL
+    AND viejo.Agente_Apellido IS NOT NULL
+    AND viejo.Agente_Direccion IS NOT NULL
+    AND viejo.Agente_Dni IS NOT NULL
+    AND viejo.Agente_Telefono IS NOT NULL
+    AND viejo.Agente_Mail IS NOT NULL
+    AND viejo.Agente_Fecha_Nac IS NOT NULL
 
 
 
