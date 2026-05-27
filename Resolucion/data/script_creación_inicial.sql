@@ -6142,21 +6142,21 @@ SELECT viejo.localidad_nombre, nuevo_provincia.provincia_id
 	ON nuevo_provincia.nombre = viejo.provincia_nombre;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+INSERT INTO ESE_CU_ELE.Cliente (localidad, nombre, apellido, dni, telefono, mail, direccion, fecha_nacimiento)
+SELECT DISTINCT
+    nuevo_localidad.localidad_id,
+    viejo.Cliente_Nombre,
+    viejo.Cliente_Apellido,
+    viejo.Cliente_Dni,
+    viejo.Cliente_Tel,
+    viejo.Cliente_Mail,
+    viejo.Cliente_Direccion,
+    viejo.Cliente_Fecha_Nac
+    FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Provincia nuevo_provincia
+    ON nuevo_provincia.nombre = viejo.Cliente_Provincia
+INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
+    ON nuevo_localidad.nombre = viejo.Cliente_Localidad AND nuevo_localidad.provincia_id = nuevo_provincia.provincia_id
 
 
 
