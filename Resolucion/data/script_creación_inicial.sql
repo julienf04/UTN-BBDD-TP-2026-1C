@@ -95,26 +95,26 @@ PRINT(N'Esquema ESE_CU_ELE creado');
 CREATE TABLE ESE_CU_ELE.Pais (
     pais_id BIGINT PRIMARY KEY IDENTITY(1,1),
     nombre nvarchar(255) UNIQUE
-)
+);
 
 CREATE TABLE ESE_CU_ELE.Provincia (
     provincia_id BIGINT PRIMARY KEY IDENTITY(1,1),
     nombre nvarchar(255) UNIQUE
-)
+);
 
 CREATE TABLE ESE_CU_ELE.Ciudad (
     ciudad_id BIGINT PRIMARY KEY IDENTITY(1,1),
     pais_id BIGINT, -- FK
     nombre nvarchar(255),
     CONSTRAINT unique_ciudad_nombre_paisid UNIQUE(pais_id, nombre)
-)
+);
 
 CREATE TABLE ESE_CU_ELE.Localidad (
     localidad_id BIGINT PRIMARY KEY IDENTITY(1,1),
     provincia_id BIGINT, -- FK
     nombre nvarchar(255),
     CONSTRAINT unique_localidad_nombre_provinciaid UNIQUE(provincia_id, nombre)
-)
+);
 
 CREATE TABLE ESE_CU_ELE.Cliente (
     cliente_id BIGINT PRIMARY KEY IDENTITY(1,1),
@@ -126,7 +126,7 @@ CREATE TABLE ESE_CU_ELE.Cliente (
     mail nvarchar(255),
     direccion nvarchar(255),
     fecha_nacimiento DATE
-)
+);
 
 CREATE TABLE ESE_CU_ELE.Agencia (
     agencia_nro BIGINT PRIMARY KEY,
@@ -134,7 +134,7 @@ CREATE TABLE ESE_CU_ELE.Agencia (
     direccion nvarchar(255),
     telefono nvarchar(255),
     mail nvarchar(255)
-)
+);
 
 CREATE TABLE ESE_CU_ELE.Agente (
     agente_legajo BIGINT PRIMARY KEY,
@@ -147,7 +147,7 @@ CREATE TABLE ESE_CU_ELE.Agente (
     telefono nvarchar(255),
     mail nvarchar(255),
     fecha_nacimiento DATE
-)
+);
 
 CREATE TABLE ESE_CU_ELE.Solicitud_De_Cotizacion (
     nro_solicitud_id BIGINT PRIMARY KEY,
@@ -159,7 +159,7 @@ CREATE TABLE ESE_CU_ELE.Solicitud_De_Cotizacion (
     cantidad_pasajeros INT,
     observaciones nvarchar(max),
     presupuesto_estimado decimal(18,2)
-)
+);
 
 CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
     detalle_solicitud_cotizacion_id BIGINT PRIMARY KEY IDENTITY(1,1),
@@ -167,7 +167,7 @@ CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
     ciudad_id BIGINT, -- FK
     cant_dias_aprox INT,
     observaciones nvarchar(max)
-)
+);
 
 
 
@@ -6158,14 +6158,9 @@ INNER JOIN ESE_CU_ELE.Provincia nuevo_provincia
 INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
     ON nuevo_localidad.nombre = viejo.Cliente_Localidad AND nuevo_localidad.provincia_id = nuevo_provincia.provincia_id
 WHERE
-    nuevo_localidad.localidad_id IS NOT NULL
+    viejo.Cliente_Dni IS NOT NULL -- Hay personas con el mismo dni, asi que compruebo no solo por el dni, sino tambien por el nombre y apellido
     AND viejo.Cliente_Nombre IS NOT NULL
-    AND viejo.Cliente_Apellido IS NOT NULL
-    AND viejo.Cliente_Dni IS NOT NULL
-    AND viejo.Cliente_Tel IS NOT NULL
-    AND viejo.Cliente_Mail IS NOT NULL
-    AND viejo.Cliente_Direccion IS NOT NULL
-    AND viejo.Cliente_Fecha_Nac IS NOT NULL;
+    AND viejo.Cliente_Apellido IS NOT NULL;
 
 
 INSERT INTO ESE_CU_ELE.Agencia (agencia_nro, localidad, direccion, telefono, mail)
@@ -6181,11 +6176,7 @@ INNER JOIN ESE_CU_ELE.Provincia nuevo_provincia
 INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
     ON nuevo_localidad.nombre = viejo.Agencia_Localidad AND nuevo_localidad.provincia_id = nuevo_provincia.provincia_id
 WHERE
-    viejo.Agencia_Nro_Agencia IS NOT NULL
-    AND nuevo_localidad.localidad_id IS NOT NULL
-    AND viejo.Agencia_Direccion IS NOT NULL
-    AND viejo.Agencia_Telefono IS NOT NULL
-    AND viejo.Agencia_Mail IS NOT NULL;
+    viejo.Agencia_Nro_Agencia IS NOT NULL;
 
 
 INSERT INTO ESE_CU_ELE.Agente (agente_legajo, agencia_nro, localidad, nombre, apellido, direccion, dni, telefono, mail, fecha_nacimiento)
@@ -6206,51 +6197,44 @@ INNER JOIN ESE_CU_ELE.Provincia nuevo_provincia
 INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
     ON nuevo_localidad.nombre = viejo.Agente_Localidad AND nuevo_localidad.provincia_id = nuevo_provincia.provincia_id
 WHERE
-    viejo.Agente_Legajo IS NOT NULL
-    AND viejo.Agencia_Nro_Agencia IS NOT NULL
-    AND nuevo_localidad.localidad_id IS NOT NULL
-    AND viejo.Agente_Nombre IS NOT NULL
-    AND viejo.Agente_Apellido IS NOT NULL
-    AND viejo.Agente_Direccion IS NOT NULL
-    AND viejo.Agente_Dni IS NOT NULL
-    AND viejo.Agente_Telefono IS NOT NULL
-    AND viejo.Agente_Mail IS NOT NULL
-    AND viejo.Agente_Fecha_Nac IS NOT NULL
+    viejo.Agente_Legajo IS NOT NULL;
 
 
+INSERT INTO ESE_CU_ELE.Solicitud_De_Cotizacion (nro_solicitud_id, cliente_id, agente_legajo, fecha_solicitud,
+                                                fecha_inicio_tentativa, fecha_fin_tentativa, cantidad_pasajeros,
+                                                observaciones, presupuesto_estimado)
+SELECT DISTINCT
+    viejo.Solicitud_Nro_Solicitud,
+    nuevo_cliente.cliente_id,
+    nuevo_agente.agente_legajo,
+    viejo.Solicitud_Fecha_Solicitud,
+    viejo.Solicitud_Fecha_Inicio_Tentativa,
+    viejo.Solicitud_Fecha_Fin_Tentativa,
+    viejo.Solicitud_Cant_Pax,
+    viejo.Solicitud_Observaciones,
+    viejo.Solicitud_Presupuesto_Estimado
+    FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Cliente nuevo_cliente
+    ON nuevo_cliente.dni = viejo.Cliente_Dni -- Hay personas con el mismo dni, asi que compruebo no solo por el dni, sino tambien por el nombre y apellido
+       AND nuevo_cliente.nombre = viejo.Cliente_Nombre
+       AND nuevo_cliente.apellido = viejo.Cliente_Apellido
+INNER JOIN ESE_CU_ELE.Agente nuevo_agente
+    ON nuevo_agente.agente_legajo = viejo.Agente_Legajo
+WHERE
+    viejo.Solicitud_Nro_Solicitud IS NOT NULL;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+INSERT INTO ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (solicitud_cotizacion_id, ciudad_id, cant_dias_aprox, observaciones)
+SELECT
+    viejo.Solicitud_Nro_Solicitud,
+    nuevo_ciudad.ciudad_id,
+    viejo.Detalle_Solicitud_Cant_Dias_Aprox,
+    viejo.Detalle_Solicitud_Observaciones
+    FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Ciudad nuevo_ciudad
+    ON nuevo_ciudad.nombre = viejo.Detalle_Solicitud_Ciudad
+WHERE
+    viejo.Solicitud_Nro_Solicitud IS NOT NULL;
 
 
 
@@ -10048,4 +10032,4 @@ END CATCH;
 
 PRINT(N'Indices creados');
 
-PRINT(N'Migracion total completada')
+PRINT(N'Migracion total completada');
