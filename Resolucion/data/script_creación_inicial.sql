@@ -91,16 +91,21 @@ PRINT(N'Esquema ESE_CU_ELE creado');
 
 -- ZONA DE TRABAJO DEL VERDE
 
+--------------- Pais ---------------
 
 CREATE TABLE ESE_CU_ELE.Pais (
     pais_id BIGINT PRIMARY KEY IDENTITY(1,1),
     nombre nvarchar(255) UNIQUE
 );
 
+--------------- Provincia ---------------
+
 CREATE TABLE ESE_CU_ELE.Provincia (
     provincia_id BIGINT PRIMARY KEY IDENTITY(1,1),
     nombre nvarchar(255) UNIQUE
 );
+
+--------------- Ciudad ---------------
 
 CREATE TABLE ESE_CU_ELE.Ciudad (
     ciudad_id BIGINT PRIMARY KEY IDENTITY(1,1),
@@ -109,12 +114,16 @@ CREATE TABLE ESE_CU_ELE.Ciudad (
     CONSTRAINT unique_ciudad_nombre_paisid UNIQUE(pais_id, nombre)
 );
 
+--------------- Localidad ---------------
+
 CREATE TABLE ESE_CU_ELE.Localidad (
     localidad_id BIGINT PRIMARY KEY IDENTITY(1,1),
     provincia_id BIGINT, -- FK
     nombre nvarchar(255),
     CONSTRAINT unique_localidad_nombre_provinciaid UNIQUE(provincia_id, nombre)
 );
+
+--------------- Cliente ---------------
 
 CREATE TABLE ESE_CU_ELE.Cliente (
     cliente_id BIGINT PRIMARY KEY IDENTITY(1,1),
@@ -128,6 +137,8 @@ CREATE TABLE ESE_CU_ELE.Cliente (
     fecha_nacimiento DATE
 );
 
+--------------- Agencia ---------------
+
 CREATE TABLE ESE_CU_ELE.Agencia (
     agencia_nro BIGINT PRIMARY KEY,
     localidad BIGINT, -- FK
@@ -135,6 +146,8 @@ CREATE TABLE ESE_CU_ELE.Agencia (
     telefono nvarchar(255),
     mail nvarchar(255)
 );
+
+--------------- Agente ---------------
 
 CREATE TABLE ESE_CU_ELE.Agente (
     agente_legajo BIGINT PRIMARY KEY,
@@ -149,6 +162,8 @@ CREATE TABLE ESE_CU_ELE.Agente (
     fecha_nacimiento DATE
 );
 
+--------------- Solicitud_De_Cotizacion ---------------
+
 CREATE TABLE ESE_CU_ELE.Solicitud_De_Cotizacion (
     nro_solicitud_id BIGINT PRIMARY KEY,
     cliente_id BIGINT, -- FK
@@ -160,6 +175,8 @@ CREATE TABLE ESE_CU_ELE.Solicitud_De_Cotizacion (
     observaciones nvarchar(max),
     presupuesto_estimado decimal(18,2)
 );
+
+--------------- Detalle_Solicitud_De_Cotizacion ---------------
 
 CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
     detalle_solicitud_cotizacion_id BIGINT PRIMARY KEY IDENTITY(1,1),
@@ -2080,26 +2097,40 @@ PRINT(N'Tablas creadas (sin las FK)');
 -- ZONA DE TRABAJO DEL VERDE
 
 
+--------------- Ciudad ---------------
+
 ALTER TABLE ESE_CU_ELE.Ciudad
 ADD CONSTRAINT FK_Ciudad_Pais FOREIGN KEY(pais_id) REFERENCES ESE_CU_ELE.Pais(pais_id);
+
+--------------- Localidad ---------------
 
 ALTER TABLE ESE_CU_ELE.Localidad
 ADD CONSTRAINT FK_Localidad_Provincia FOREIGN KEY(provincia_id) REFERENCES ESE_CU_ELE.Provincia(provincia_id);
 
+--------------- Cliente ---------------
+
 ALTER TABLE ESE_CU_ELE.Cliente
 ADD CONSTRAINT FK_Cliente_Localidad FOREIGN KEY(localidad) REFERENCES ESE_CU_ELE.Localidad(localidad_id);
 
+--------------- Agencia ---------------
+
 ALTER TABLE ESE_CU_ELE.Agencia
 ADD CONSTRAINT FK_Agencia_Localidad FOREIGN KEY(localidad) REFERENCES ESE_CU_ELE.Localidad(localidad_id);
+
+--------------- Agente ---------------
 
 ALTER TABLE ESE_CU_ELE.Agente
 ADD CONSTRAINT FK_Agente_Agencia FOREIGN KEY(agencia_nro) REFERENCES ESE_CU_ELE.Agencia(agencia_nro),
     CONSTRAINT FK_Agente_Localidad FOREIGN KEY(localidad) REFERENCES ESE_CU_ELE.Localidad(localidad_id);
 
+--------------- Solicitud_De_Cotizacion ---------------
+
 ALTER TABLE ESE_CU_ELE.Solicitud_De_Cotizacion
 ADD CONSTRAINT FK_SolicitudCotizacion_Cliente FOREIGN KEY(cliente_id) REFERENCES ESE_CU_ELE.Cliente(cliente_id),
     CONSTRAINT FK_SolicitudCotizacion_Agente FOREIGN KEY(agente_legajo) REFERENCES ESE_CU_ELE.Agente(agente_legajo);
     
+--------------- Detalle_Solicitud_De_Cotizacion ---------------
+
 ALTER TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion
 ADD CONSTRAINT FK_DetalleSolicitudCotizacion_Solicitud_Cotizacion FOREIGN KEY(solicitud_cotizacion_id) 
         REFERENCES ESE_CU_ELE.Solicitud_De_Cotizacion(nro_solicitud_id);
@@ -6067,6 +6098,8 @@ BEGIN
 -- ZONA DE TRABAJO DEL VERDE
 
 
+--------------- Pais ---------------
+
 INSERT INTO ESE_CU_ELE.Pais (nombre)
     SELECT Aeropuerto_Salida_Pais FROM gd_esquema.Maestra
     WHERE Aeropuerto_Salida_Pais IS NOT NULL
@@ -6081,6 +6114,8 @@ INSERT INTO ESE_CU_ELE.Pais (nombre)
     WHERE Hospedaje_Pais IS NOT NULL;
 
 
+--------------- Provincia ---------------
+
 INSERT INTO ESE_CU_ELE.Provincia (nombre)
     SELECT Agencia_Provincia FROM gd_esquema.Maestra
     WHERE Agencia_Provincia IS NOT NULL
@@ -6091,6 +6126,8 @@ INSERT INTO ESE_CU_ELE.Provincia (nombre)
     SELECT Cliente_Provincia FROM gd_esquema.Maestra
     WHERE Cliente_Provincia IS NOT NULL;
 
+
+--------------- Ciudad ---------------
 
 INSERT INTO ESE_CU_ELE.Ciudad (nombre, pais_id)
 SELECT viejo.ciudad_nombre, nuevo_pais.pais_id 
@@ -6117,6 +6154,8 @@ SELECT viejo.ciudad_nombre, nuevo_pais.pais_id
 	ON nuevo_pais.nombre = viejo.pais_nombre;
 
 
+--------------- Localidad ---------------
+
 INSERT INTO ESE_CU_ELE.Localidad (nombre, provincia_id)
 SELECT viejo.localidad_nombre, nuevo_provincia.provincia_id
 	FROM (
@@ -6142,6 +6181,8 @@ SELECT viejo.localidad_nombre, nuevo_provincia.provincia_id
 	ON nuevo_provincia.nombre = viejo.provincia_nombre;
 
 
+--------------- Cliente ---------------
+
 INSERT INTO ESE_CU_ELE.Cliente (localidad, nombre, apellido, dni, telefono, mail, direccion, fecha_nacimiento)
 SELECT DISTINCT
     nuevo_localidad.localidad_id,
@@ -6163,6 +6204,8 @@ WHERE
     AND viejo.Cliente_Apellido IS NOT NULL;
 
 
+--------------- Agencia ---------------
+
 INSERT INTO ESE_CU_ELE.Agencia (agencia_nro, localidad, direccion, telefono, mail)
 SELECT DISTINCT
     viejo.Agencia_Nro_Agencia,
@@ -6178,6 +6221,8 @@ INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
 WHERE
     viejo.Agencia_Nro_Agencia IS NOT NULL;
 
+
+--------------- Agente ---------------
 
 INSERT INTO ESE_CU_ELE.Agente (agente_legajo, agencia_nro, localidad, nombre, apellido, direccion, dni, telefono, mail, fecha_nacimiento)
 SELECT DISTINCT
@@ -6199,6 +6244,8 @@ INNER JOIN ESE_CU_ELE.Localidad nuevo_localidad
 WHERE
     viejo.Agente_Legajo IS NOT NULL;
 
+
+--------------- Solicitud_De_Cotizacion ---------------
 
 INSERT INTO ESE_CU_ELE.Solicitud_De_Cotizacion (nro_solicitud_id, cliente_id, agente_legajo, fecha_solicitud,
                                                 fecha_inicio_tentativa, fecha_fin_tentativa, cantidad_pasajeros,
@@ -6224,6 +6271,8 @@ WHERE
     viejo.Solicitud_Nro_Solicitud IS NOT NULL;
 
 
+--------------- Detalle_Solicitud_De_Cotizacion ---------------
+
 INSERT INTO ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (solicitud_cotizacion_id, ciudad_id, cant_dias_aprox, observaciones)
 SELECT
     viejo.Solicitud_Nro_Solicitud,
@@ -6235,8 +6284,6 @@ INNER JOIN ESE_CU_ELE.Ciudad nuevo_ciudad
     ON nuevo_ciudad.nombre = viejo.Detalle_Solicitud_Ciudad
 WHERE
     viejo.Solicitud_Nro_Solicitud IS NOT NULL;
-
-
 
 
 
@@ -8050,7 +8097,37 @@ END CATCH;
 -- ZONA DE TRABAJO DEL VERDE
 
 
+--------------- Ciudad ---------------
 
+CREATE INDEX index_ciudad_paisid ON ESE_CU_ELE.Ciudad(pais_id);
+
+--------------- Localidad ---------------
+
+CREATE INDEX index_localidad_provinciaid ON ESE_CU_ELE.Localidad(provincia_id);
+
+--------------- Cliente ---------------
+
+CREATE INDEX index_cliente_localidad ON ESE_CU_ELE.Cliente(localidad);
+CREATE INDEX index_cliente_dni ON ESE_CU_ELE.Cliente(dni);
+
+--------------- Agencia ---------------
+
+CREATE INDEX index_agencia_localidad ON ESE_CU_ELE.Agencia(localidad);
+
+--------------- Agente ---------------
+
+CREATE INDEX index_agente_agencianro ON ESE_CU_ELE.Agente(agencia_nro);
+CREATE INDEX index_agente_localidad ON ESE_CU_ELE.Agente(localidad);
+
+--------------- Solicitud_De_Cotizacion ---------------
+
+CREATE INDEX index_solicitudcotizacion_clienteid ON ESE_CU_ELE.Solicitud_De_Cotizacion(cliente_id);
+CREATE INDEX index_solicitudcotizacion_agentelegajo ON ESE_CU_ELE.Solicitud_De_Cotizacion(agente_legajo);
+
+--------------- Detalle_Solicitud_De_Cotizacion ---------------
+
+CREATE INDEX index_detallesolicitudcotizacion_solicitudcotizacionid ON ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion(solicitud_cotizacion_id);
+CREATE INDEX index_detallesolicitudcotizacion_ciudadid ON ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion(ciudad_id);
 
 
 
@@ -9548,7 +9625,6 @@ END CATCH;
 
 
 --ZONA DE TRABAJO DEL AMARILLO
-
 
 
 
