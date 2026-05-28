@@ -8082,11 +8082,14 @@ END;
 GO
 
 BEGIN TRY
+    BEGIN TRANSACTION
     EXECUTE ESE_CU_ELE.migracion;
     PRINT('Migracion de los datos hecha');
+    COMMIT;
 END TRY
 BEGIN CATCH
-    PRINT 'Hubo un error en la migracion: ' + ERROR_MESSAGE();
+    ROLLBACK;
+    PRINT('Se hizo un Rollback en la migracion debido al siguiente error: ' + ERROR_MESSAGE());
 END CATCH;
 
 
