@@ -9393,6 +9393,31 @@ CREATE INDEX index_detallesolicitudcotizacion_ciudadid ON ESE_CU_ELE.Detalle_Sol
 
 -- ZONA DE TRABAJO DEL AZUL
 
+--------------- Aerolinea ---------------
+
+CREATE INDEX index_aerolinea_alianzaid ON ESE_CU_ELE.Aerolinea(alianza_id);
+CREATE INDEX index_aerolinea_paisid ON ESE_CU_ELE.Aerolinea(pais_id);
+
+--------------- Aeropuerto ---------------
+
+CREATE INDEX index_aeropuerto_ciudadid ON ESE_CU_ELE.Aeropuerto(ciudad_id);
+
+--------------- Vuelo ---------------
+
+CREATE INDEX index_vuelo_aeropuertosalidaid ON ESE_CU_ELE.Vuelo(aeropuerto_salida_id);
+CREATE INDEX index_vuelo_aeropuertollegadaid ON ESE_CU_ELE.Vuelo(aeropuerto_llegada_id);
+CREATE INDEX index_vuelo_aerolineaid ON ESE_CU_ELE.Vuelo(aerolinea_id);
+
+--------------- Venta_Vuelo ---------------
+
+CREATE INDEX index_ventavuelo_ventaid ON ESE_CU_ELE.Venta_Vuelo(venta_id);
+CREATE INDEX index_ventavuelo_vueloid ON ESE_CU_ELE.Venta_Vuelo(vuelo_id);
+
+--------------- Detalle_Propuesta_Vuelo ---------------
+
+CREATE INDEX index_detallepropuestavuelo_propuestanro ON ESE_CU_ELE.Detalle_Propuesta_Vuelo(propuesta_nro);
+CREATE INDEX index_detallepropuestavuelo_vueloid ON ESE_CU_ELE.Detalle_Propuesta_Vuelo(vuelo_id);
+
 
 
 
