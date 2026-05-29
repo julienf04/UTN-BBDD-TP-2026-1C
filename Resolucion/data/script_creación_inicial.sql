@@ -1,4 +1,4 @@
------------------- DIVISION DEL SCRIPT (las lineas son aproximadas) ------------------
+﻿------------------ DIVISION DEL SCRIPT (las lineas son aproximadas) ------------------
 
 -- CREACION DEL ESQUEMA (linea 41)
 
@@ -1106,6 +1106,83 @@ CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
 
 
 -- ZONA DE TRABAJO DEL AZUL
+
+--------------- Alianza ---------------
+
+CREATE TABLE ESE_CU_ELE.Alianza (
+    alianza_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    nombre nvarchar(255) UNIQUE
+);
+
+--------------- Aerolinea ---------------
+
+CREATE TABLE ESE_CU_ELE.Aerolinea (
+    aerolinea_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    alianza_id BIGINT, -- FK
+    pais_id BIGINT, -- FK
+    nombre nvarchar(255),
+    codigo nvarchar(10),
+    CONSTRAINT unique_aerolinea_codigo UNIQUE(codigo)
+);
+
+--------------- Aeropuerto ---------------
+
+CREATE TABLE ESE_CU_ELE.Aeropuerto (
+    aeropuerto_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    ciudad_id BIGINT, -- FK
+    nombre nvarchar(200),
+    codigo nvarchar(10),
+    CONSTRAINT unique_aeropuerto_codigo UNIQUE(codigo)
+);
+
+--------------- Beneficio_Vuelo ---------------
+
+CREATE TABLE ESE_CU_ELE.Beneficio_Vuelo (
+    beneficio_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    beneficio_nombre nvarchar(255) UNIQUE
+);
+
+--------------- Vuelo ---------------
+
+CREATE TABLE ESE_CU_ELE.Vuelo (
+    vuelo_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    aeropuerto_salida_id BIGINT, -- FK
+    aeropuerto_llegada_id BIGINT, -- FK
+    aerolinea_id BIGINT, -- FK
+    fecha_hora_salida DATETIME,
+    fecha_hora_llegada DATETIME,
+    duracion INT,
+    CONSTRAINT unique_vuelo UNIQUE (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_hora_salida)
+);
+
+--------------- Vuelo_Beneficio ---------------
+
+CREATE TABLE ESE_CU_ELE.Vuelo_Beneficio (
+    vuelo_id BIGINT, -- FK
+    beneficio_id BIGINT, -- FK
+    CONSTRAINT PK_Vuelo_Beneficio PRIMARY KEY (vuelo_id, beneficio_id)
+);
+
+--------------- Detalle_Propuesta_Vuelo ---------------
+
+CREATE TABLE ESE_CU_ELE.Detalle_Propuesta_Vuelo (
+    propuesta_nro BIGINT, -- FK
+    vuelo_id BIGINT, -- FK
+    cantidad_pasajes INT,
+    precio_unitario decimal(18,2),
+    CONSTRAINT PK_Detalle_Propuesta_Vuelo PRIMARY KEY (propuesta_nro, vuelo_id)
+);
+
+--------------- Venta_Vuelo ---------------
+
+CREATE TABLE ESE_CU_ELE.Venta_Vuelo (
+    venta_vuelo_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    venta_id BIGINT, -- FK
+    vuelo_id BIGINT, -- FK
+    cantidad_pasajes INT,
+    precio_unitario decimal(18,2),
+    cod_reserva nvarchar(255)
+);
 
 
 
@@ -3110,6 +3187,42 @@ ADD CONSTRAINT FK_DetalleSolicitudCotizacion_Solicitud_Cotizacion FOREIGN KEY(so
 
 
 -- ZONA DE TRABAJO DEL AZUL
+
+--------------- Aerolinea ---------------
+
+ALTER TABLE ESE_CU_ELE.Aerolinea
+ADD CONSTRAINT FK_Aerolinea_Alianza FOREIGN KEY(alianza_id) REFERENCES ESE_CU_ELE.Alianza(alianza_id),
+    CONSTRAINT FK_Aerolinea_Pais FOREIGN KEY(pais_id) REFERENCES ESE_CU_ELE.Pais(pais_id);
+
+--------------- Aeropuerto ---------------
+
+ALTER TABLE ESE_CU_ELE.Aeropuerto
+ADD CONSTRAINT FK_Aeropuerto_Ciudad FOREIGN KEY(ciudad_id) REFERENCES ESE_CU_ELE.Ciudad(ciudad_id);
+
+--------------- Vuelo ---------------
+
+ALTER TABLE ESE_CU_ELE.Vuelo
+ADD CONSTRAINT FK_Vuelo_AeropuertoSalida FOREIGN KEY(aeropuerto_salida_id) REFERENCES ESE_CU_ELE.Aeropuerto(aeropuerto_id),
+    CONSTRAINT FK_Vuelo_AeropuertoLlegada FOREIGN KEY(aeropuerto_llegada_id) REFERENCES ESE_CU_ELE.Aeropuerto(aeropuerto_id),
+    CONSTRAINT FK_Vuelo_Aerolinea FOREIGN KEY(aerolinea_id) REFERENCES ESE_CU_ELE.Aerolinea(aerolinea_id);
+
+--------------- Vuelo_Beneficio ---------------
+
+ALTER TABLE ESE_CU_ELE.Vuelo_Beneficio
+ADD CONSTRAINT FK_VueloBeneficio_Vuelo FOREIGN KEY(vuelo_id) REFERENCES ESE_CU_ELE.Vuelo(vuelo_id),
+    CONSTRAINT FK_VueloBeneficio_Beneficio FOREIGN KEY(beneficio_id) REFERENCES ESE_CU_ELE.Beneficio_Vuelo(beneficio_id);
+
+--------------- Detalle_Propuesta_Vuelo ---------------
+
+ALTER TABLE ESE_CU_ELE.Detalle_Propuesta_Vuelo
+ADD CONSTRAINT FK_DetallePropuestaVuelo_Propuesta FOREIGN KEY(propuesta_nro) REFERENCES ESE_CU_ELE.Propuesta(propuesta_nro),
+    CONSTRAINT FK_DetallePropuestaVuelo_Vuelo FOREIGN KEY(vuelo_id) REFERENCES ESE_CU_ELE.Vuelo(vuelo_id);
+
+--------------- Venta_Vuelo ---------------
+
+ALTER TABLE ESE_CU_ELE.Venta_Vuelo
+ADD CONSTRAINT FK_VentaVuelo_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_nro),
+    CONSTRAINT FK_VentaVuelo_Vuelo FOREIGN KEY(vuelo_id) REFERENCES ESE_CU_ELE.Vuelo(vuelo_id);
 
 
 
@@ -7097,6 +7210,157 @@ WHERE
 
 -- ZONA DE TRABAJO DEL AZUL
 
+--------------- Alianza ---------------
+
+INSERT INTO ESE_CU_ELE.Alianza (nombre)
+SELECT DISTINCT Aerolinea_Alianza
+FROM gd_esquema.Maestra
+WHERE Aerolinea_Alianza IS NOT NULL;
+
+
+--------------- Aerolinea ---------------
+
+INSERT INTO ESE_CU_ELE.Aerolinea (alianza_id, pais_id, nombre, codigo)
+SELECT DISTINCT
+    al.alianza_id,
+    p.pais_id,
+    viejo.Aerolinea_Nombre,
+    viejo.Aerolinea_Codigo
+FROM gd_esquema.Maestra viejo
+LEFT JOIN ESE_CU_ELE.Alianza al ON al.nombre = viejo.Aerolinea_Alianza
+INNER JOIN ESE_CU_ELE.Pais p ON p.nombre = viejo.Aerolinea_Pais
+WHERE viejo.Aerolinea_Nombre IS NOT NULL
+  AND viejo.Aerolinea_Codigo IS NOT NULL;
+
+
+--------------- Aeropuerto ---------------
+
+INSERT INTO ESE_CU_ELE.Aeropuerto (ciudad_id, nombre, codigo)
+SELECT DISTINCT c.ciudad_id, viejo.aeropuerto_nombre, viejo.aeropuerto_codigo
+FROM (
+    SELECT
+        Aeropuerto_Salida_Descripcion AS aeropuerto_nombre,
+        Aeropuerto_Salida_Codigo      AS aeropuerto_codigo,
+        Aeropuerto_Salida_Ciudad      AS ciudad_nombre,
+        Aeropuerto_Salida_Pais        AS pais_nombre
+    FROM gd_esquema.Maestra
+    WHERE Aeropuerto_Salida_Descripcion IS NOT NULL
+      AND Aeropuerto_Salida_Codigo IS NOT NULL
+    UNION
+    SELECT
+        Aeropuerto_Llegada_Descripcion,
+        Aeropuerto_Llegada_Codigo,
+        Aeropuerto_Llegada_Ciudad,
+        Aeropuerto_Llegada_Pais
+    FROM gd_esquema.Maestra
+    WHERE Aeropuerto_Llegada_Descripcion IS NOT NULL
+      AND Aeropuerto_Llegada_Codigo IS NOT NULL
+) AS viejo
+INNER JOIN ESE_CU_ELE.Pais p ON p.nombre = viejo.pais_nombre
+INNER JOIN ESE_CU_ELE.Ciudad c ON c.nombre = viejo.ciudad_nombre AND c.pais_id = p.pais_id;
+
+
+--------------- Beneficio_Vuelo ---------------
+
+INSERT INTO ESE_CU_ELE.Beneficio_Vuelo (beneficio_nombre)
+VALUES ('Carry On'), ('Valija');
+
+
+--------------- Vuelo ---------------
+
+INSERT INTO ESE_CU_ELE.Vuelo (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_hora_salida, fecha_hora_llegada, duracion)
+SELECT DISTINCT
+    ap_sal.aeropuerto_id,
+    ap_lle.aeropuerto_id,
+    ae.aerolinea_id,
+    CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME),
+    CAST(CAST(viejo.Vuelo_Fecha_Llegada AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Llegada AS DATETIME),
+    viejo.Vuelo_Duracion
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+WHERE viejo.Vuelo_Fecha_Salida IS NOT NULL
+  AND viejo.Aeropuerto_Salida_Codigo IS NOT NULL
+  AND viejo.Aeropuerto_Llegada_Codigo IS NOT NULL;
+
+
+--------------- Vuelo_Beneficio ---------------
+
+INSERT INTO ESE_CU_ELE.Vuelo_Beneficio (vuelo_id, beneficio_id)
+SELECT DISTINCT v.vuelo_id, bf.beneficio_id
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+INNER JOIN ESE_CU_ELE.Vuelo v
+    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+    AND v.aerolinea_id = ae.aerolinea_id
+    AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
+INNER JOIN ESE_CU_ELE.Beneficio_Vuelo bf ON bf.beneficio_nombre = 'Carry On'
+WHERE viejo.Vuelo_Incluye_Carry = 1
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
+
+INSERT INTO ESE_CU_ELE.Vuelo_Beneficio (vuelo_id, beneficio_id)
+SELECT DISTINCT v.vuelo_id, bf.beneficio_id
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+INNER JOIN ESE_CU_ELE.Vuelo v
+    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+    AND v.aerolinea_id = ae.aerolinea_id
+    AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
+INNER JOIN ESE_CU_ELE.Beneficio_Vuelo bf ON bf.beneficio_nombre = 'Valija'
+WHERE viejo.Vuelo_Incluye_Valija = 1
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
+
+
+--------------- Detalle_Propuesta_Vuelo ---------------
+
+INSERT INTO ESE_CU_ELE.Detalle_Propuesta_Vuelo (propuesta_nro, vuelo_id, cantidad_pasajes, precio_unitario)
+SELECT DISTINCT
+    viejo.Propuesta_Nro_Propuesta,
+    v.vuelo_id,
+    viejo.Detalle_Propuesta_Vuelo_Cant_Pasajes,
+    viejo.Detalle_Propuesta_Vuelo_Precio
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+INNER JOIN ESE_CU_ELE.Vuelo v
+    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+    AND v.aerolinea_id = ae.aerolinea_id
+    AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
+WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
+
+
+--------------- Venta_Vuelo ---------------
+
+INSERT INTO ESE_CU_ELE.Venta_Vuelo (venta_id, vuelo_id, cantidad_pasajes, precio_unitario, cod_reserva)
+SELECT DISTINCT
+    viejo.Venta_Nro_Venta,
+    v.vuelo_id,
+    viejo.Detalle_Venta_Vuelo_Cantidad_Pasajes,
+    viejo.Detalle_Venta_Vuelo_Precio_Unitario,
+    viejo.Detalle_Venta_Vuelo_Cod_Reserva
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+INNER JOIN ESE_CU_ELE.Vuelo v
+    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+    AND v.aerolinea_id = ae.aerolinea_id
+    AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
+WHERE viejo.Venta_Nro_Venta IS NOT NULL
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL
+  AND viejo.Detalle_Venta_Vuelo_Cod_Reserva IS NOT NULL;
+
 
 
 
@@ -9128,6 +9392,31 @@ CREATE INDEX index_detallesolicitudcotizacion_ciudadid ON ESE_CU_ELE.Detalle_Sol
 
 
 -- ZONA DE TRABAJO DEL AZUL
+
+--------------- Aerolinea ---------------
+
+CREATE INDEX index_aerolinea_alianzaid ON ESE_CU_ELE.Aerolinea(alianza_id);
+CREATE INDEX index_aerolinea_paisid ON ESE_CU_ELE.Aerolinea(pais_id);
+
+--------------- Aeropuerto ---------------
+
+CREATE INDEX index_aeropuerto_ciudadid ON ESE_CU_ELE.Aeropuerto(ciudad_id);
+
+--------------- Vuelo ---------------
+
+CREATE INDEX index_vuelo_aeropuertosalidaid ON ESE_CU_ELE.Vuelo(aeropuerto_salida_id);
+CREATE INDEX index_vuelo_aeropuertollegadaid ON ESE_CU_ELE.Vuelo(aeropuerto_llegada_id);
+CREATE INDEX index_vuelo_aerolineaid ON ESE_CU_ELE.Vuelo(aerolinea_id);
+
+--------------- Venta_Vuelo ---------------
+
+CREATE INDEX index_ventavuelo_ventaid ON ESE_CU_ELE.Venta_Vuelo(venta_id);
+CREATE INDEX index_ventavuelo_vueloid ON ESE_CU_ELE.Venta_Vuelo(vuelo_id);
+
+--------------- Detalle_Propuesta_Vuelo ---------------
+
+CREATE INDEX index_detallepropuestavuelo_propuestanro ON ESE_CU_ELE.Detalle_Propuesta_Vuelo(propuesta_nro);
+CREATE INDEX index_detallepropuestavuelo_vueloid ON ESE_CU_ELE.Detalle_Propuesta_Vuelo(vuelo_id);
 
 
 
