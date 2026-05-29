@@ -7210,6 +7210,157 @@ WHERE
 
 -- ZONA DE TRABAJO DEL AZUL
 
+--------------- Alianza ---------------
+
+INSERT INTO ESE_CU_ELE.Alianza (nombre)
+SELECT DISTINCT Aerolinea_Alianza
+FROM gd_esquema.Maestra
+WHERE Aerolinea_Alianza IS NOT NULL;
+
+
+--------------- Aerolinea ---------------
+
+INSERT INTO ESE_CU_ELE.Aerolinea (alianza_id, pais_id, nombre, codigo)
+SELECT DISTINCT
+    al.alianza_id,
+    p.pais_id,
+    viejo.Aerolinea_Nombre,
+    viejo.Aerolinea_Codigo
+FROM gd_esquema.Maestra viejo
+LEFT JOIN ESE_CU_ELE.Alianza al ON al.nombre = viejo.Aerolinea_Alianza
+INNER JOIN ESE_CU_ELE.Pais p ON p.nombre = viejo.Aerolinea_Pais
+WHERE viejo.Aerolinea_Nombre IS NOT NULL
+  AND viejo.Aerolinea_Codigo IS NOT NULL;
+
+
+--------------- Aeropuerto ---------------
+
+INSERT INTO ESE_CU_ELE.Aeropuerto (ciudad_id, nombre, codigo)
+SELECT DISTINCT c.ciudad_id, viejo.aeropuerto_nombre, viejo.aeropuerto_codigo
+FROM (
+    SELECT
+        Aeropuerto_Salida_Descripcion AS aeropuerto_nombre,
+        Aeropuerto_Salida_Codigo      AS aeropuerto_codigo,
+        Aeropuerto_Salida_Ciudad      AS ciudad_nombre,
+        Aeropuerto_Salida_Pais        AS pais_nombre
+    FROM gd_esquema.Maestra
+    WHERE Aeropuerto_Salida_Descripcion IS NOT NULL
+      AND Aeropuerto_Salida_Codigo IS NOT NULL
+    UNION
+    SELECT
+        Aeropuerto_Llegada_Descripcion,
+        Aeropuerto_Llegada_Codigo,
+        Aeropuerto_Llegada_Ciudad,
+        Aeropuerto_Llegada_Pais
+    FROM gd_esquema.Maestra
+    WHERE Aeropuerto_Llegada_Descripcion IS NOT NULL
+      AND Aeropuerto_Llegada_Codigo IS NOT NULL
+) AS viejo
+INNER JOIN ESE_CU_ELE.Pais p ON p.nombre = viejo.pais_nombre
+INNER JOIN ESE_CU_ELE.Ciudad c ON c.nombre = viejo.ciudad_nombre AND c.pais_id = p.pais_id;
+
+
+--------------- Beneficio_Vuelo ---------------
+
+INSERT INTO ESE_CU_ELE.Beneficio_Vuelo (beneficio_nombre)
+VALUES ('Carry On'), ('Valija');
+
+
+--------------- Vuelo ---------------
+
+INSERT INTO ESE_CU_ELE.Vuelo (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_hora_salida, fecha_hora_llegada, duracion)
+SELECT DISTINCT
+    ap_sal.aeropuerto_id,
+    ap_lle.aeropuerto_id,
+    ae.aerolinea_id,
+    CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME),
+    CAST(CAST(viejo.Vuelo_Fecha_Llegada AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Llegada AS DATETIME),
+    viejo.Vuelo_Duracion
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+WHERE viejo.Vuelo_Fecha_Salida IS NOT NULL
+  AND viejo.Aeropuerto_Salida_Codigo IS NOT NULL
+  AND viejo.Aeropuerto_Llegada_Codigo IS NOT NULL;
+
+
+--------------- Vuelo_Beneficio ---------------
+
+INSERT INTO ESE_CU_ELE.Vuelo_Beneficio (vuelo_id, beneficio_id)
+SELECT DISTINCT v.vuelo_id, bf.beneficio_id
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+INNER JOIN ESE_CU_ELE.Vuelo v
+    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+    AND v.aerolinea_id = ae.aerolinea_id
+    AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
+INNER JOIN ESE_CU_ELE.Beneficio_Vuelo bf ON bf.beneficio_nombre = 'Carry On'
+WHERE viejo.Vuelo_Incluye_Carry = 1
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
+
+INSERT INTO ESE_CU_ELE.Vuelo_Beneficio (vuelo_id, beneficio_id)
+SELECT DISTINCT v.vuelo_id, bf.beneficio_id
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+INNER JOIN ESE_CU_ELE.Vuelo v
+    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+    AND v.aerolinea_id = ae.aerolinea_id
+    AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
+INNER JOIN ESE_CU_ELE.Beneficio_Vuelo bf ON bf.beneficio_nombre = 'Valija'
+WHERE viejo.Vuelo_Incluye_Valija = 1
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
+
+
+--------------- Detalle_Propuesta_Vuelo ---------------
+
+INSERT INTO ESE_CU_ELE.Detalle_Propuesta_Vuelo (propuesta_nro, vuelo_id, cantidad_pasajes, precio_unitario)
+SELECT DISTINCT
+    viejo.Propuesta_Nro_Propuesta,
+    v.vuelo_id,
+    viejo.Detalle_Propuesta_Vuelo_Cant_Pasajes,
+    viejo.Detalle_Propuesta_Vuelo_Precio
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+INNER JOIN ESE_CU_ELE.Vuelo v
+    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+    AND v.aerolinea_id = ae.aerolinea_id
+    AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
+WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
+
+
+--------------- Venta_Vuelo ---------------
+
+INSERT INTO ESE_CU_ELE.Venta_Vuelo (venta_id, vuelo_id, cantidad_pasajes, precio_unitario, cod_reserva)
+SELECT DISTINCT
+    viejo.Venta_Nro_Venta,
+    v.vuelo_id,
+    viejo.Detalle_Venta_Vuelo_Cantidad_Pasajes,
+    viejo.Detalle_Venta_Vuelo_Precio_Unitario,
+    viejo.Detalle_Venta_Vuelo_Cod_Reserva
+FROM gd_esquema.Maestra viejo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+INNER JOIN ESE_CU_ELE.Vuelo v
+    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+    AND v.aerolinea_id = ae.aerolinea_id
+    AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
+WHERE viejo.Venta_Nro_Venta IS NOT NULL
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL
+  AND viejo.Detalle_Venta_Vuelo_Cod_Reserva IS NOT NULL;
+
 
 
 
