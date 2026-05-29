@@ -3188,6 +3188,42 @@ ADD CONSTRAINT FK_DetalleSolicitudCotizacion_Solicitud_Cotizacion FOREIGN KEY(so
 
 -- ZONA DE TRABAJO DEL AZUL
 
+--------------- Aerolinea ---------------
+
+ALTER TABLE ESE_CU_ELE.Aerolinea
+ADD CONSTRAINT FK_Aerolinea_Alianza FOREIGN KEY(alianza_id) REFERENCES ESE_CU_ELE.Alianza(alianza_id),
+    CONSTRAINT FK_Aerolinea_Pais FOREIGN KEY(pais_id) REFERENCES ESE_CU_ELE.Pais(pais_id);
+
+--------------- Aeropuerto ---------------
+
+ALTER TABLE ESE_CU_ELE.Aeropuerto
+ADD CONSTRAINT FK_Aeropuerto_Ciudad FOREIGN KEY(ciudad_id) REFERENCES ESE_CU_ELE.Ciudad(ciudad_id);
+
+--------------- Vuelo ---------------
+
+ALTER TABLE ESE_CU_ELE.Vuelo
+ADD CONSTRAINT FK_Vuelo_AeropuertoSalida FOREIGN KEY(aeropuerto_salida_id) REFERENCES ESE_CU_ELE.Aeropuerto(aeropuerto_id),
+    CONSTRAINT FK_Vuelo_AeropuertoLlegada FOREIGN KEY(aeropuerto_llegada_id) REFERENCES ESE_CU_ELE.Aeropuerto(aeropuerto_id),
+    CONSTRAINT FK_Vuelo_Aerolinea FOREIGN KEY(aerolinea_id) REFERENCES ESE_CU_ELE.Aerolinea(aerolinea_id);
+
+--------------- Vuelo_Beneficio ---------------
+
+ALTER TABLE ESE_CU_ELE.Vuelo_Beneficio
+ADD CONSTRAINT FK_VueloBeneficio_Vuelo FOREIGN KEY(vuelo_id) REFERENCES ESE_CU_ELE.Vuelo(vuelo_id),
+    CONSTRAINT FK_VueloBeneficio_Beneficio FOREIGN KEY(beneficio_id) REFERENCES ESE_CU_ELE.Beneficio_Vuelo(beneficio_id);
+
+--------------- Detalle_Propuesta_Vuelo ---------------
+
+ALTER TABLE ESE_CU_ELE.Detalle_Propuesta_Vuelo
+ADD CONSTRAINT FK_DetallePropuestaVuelo_Propuesta FOREIGN KEY(propuesta_nro) REFERENCES ESE_CU_ELE.Propuesta(propuesta_nro),
+    CONSTRAINT FK_DetallePropuestaVuelo_Vuelo FOREIGN KEY(vuelo_id) REFERENCES ESE_CU_ELE.Vuelo(vuelo_id);
+
+--------------- Venta_Vuelo ---------------
+
+ALTER TABLE ESE_CU_ELE.Venta_Vuelo
+ADD CONSTRAINT FK_VentaVuelo_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_nro),
+    CONSTRAINT FK_VentaVuelo_Vuelo FOREIGN KEY(vuelo_id) REFERENCES ESE_CU_ELE.Vuelo(vuelo_id);
+
 
 
 
