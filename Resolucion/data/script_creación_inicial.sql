@@ -1,4 +1,4 @@
------------------- DIVISION DEL SCRIPT (las lineas son aproximadas) ------------------
+﻿------------------ DIVISION DEL SCRIPT (las lineas son aproximadas) ------------------
 
 -- CREACION DEL ESQUEMA (linea 41)
 
@@ -1106,6 +1106,83 @@ CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
 
 
 -- ZONA DE TRABAJO DEL AZUL
+
+--------------- Alianza ---------------
+
+CREATE TABLE ESE_CU_ELE.Alianza (
+    alianza_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    nombre nvarchar(255) UNIQUE
+);
+
+--------------- Aerolinea ---------------
+
+CREATE TABLE ESE_CU_ELE.Aerolinea (
+    aerolinea_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    alianza_id BIGINT, -- FK
+    pais_id BIGINT, -- FK
+    nombre nvarchar(255),
+    codigo nvarchar(10),
+    CONSTRAINT unique_aerolinea_codigo UNIQUE(codigo)
+);
+
+--------------- Aeropuerto ---------------
+
+CREATE TABLE ESE_CU_ELE.Aeropuerto (
+    aeropuerto_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    ciudad_id BIGINT, -- FK
+    nombre nvarchar(200),
+    codigo nvarchar(10),
+    CONSTRAINT unique_aeropuerto_codigo UNIQUE(codigo)
+);
+
+--------------- Beneficio_Vuelo ---------------
+
+CREATE TABLE ESE_CU_ELE.Beneficio_Vuelo (
+    beneficio_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    beneficio_nombre nvarchar(255) UNIQUE
+);
+
+--------------- Vuelo ---------------
+
+CREATE TABLE ESE_CU_ELE.Vuelo (
+    vuelo_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    aeropuerto_salida_id BIGINT, -- FK
+    aeropuerto_llegada_id BIGINT, -- FK
+    aerolinea_id BIGINT, -- FK
+    fecha_hora_salida DATETIME,
+    fecha_hora_llegada DATETIME,
+    duracion INT,
+    CONSTRAINT unique_vuelo UNIQUE (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_hora_salida)
+);
+
+--------------- Vuelo_Beneficio ---------------
+
+CREATE TABLE ESE_CU_ELE.Vuelo_Beneficio (
+    vuelo_id BIGINT, -- FK
+    beneficio_id BIGINT, -- FK
+    CONSTRAINT PK_Vuelo_Beneficio PRIMARY KEY (vuelo_id, beneficio_id)
+);
+
+--------------- Detalle_Propuesta_Vuelo ---------------
+
+CREATE TABLE ESE_CU_ELE.Detalle_Propuesta_Vuelo (
+    propuesta_nro BIGINT, -- FK
+    vuelo_id BIGINT, -- FK
+    cantidad_pasajes INT,
+    precio_unitario decimal(18,2),
+    CONSTRAINT PK_Detalle_Propuesta_Vuelo PRIMARY KEY (propuesta_nro, vuelo_id)
+);
+
+--------------- Venta_Vuelo ---------------
+
+CREATE TABLE ESE_CU_ELE.Venta_Vuelo (
+    venta_vuelo_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    venta_id BIGINT, -- FK
+    vuelo_id BIGINT, -- FK
+    cantidad_pasajes INT,
+    precio_unitario decimal(18,2),
+    cod_reserva nvarchar(255)
+);
 
 
 
