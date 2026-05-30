@@ -3676,7 +3676,21 @@ PRINT(N'Creadas las FK');
 
 -- ZONA DE TRABAJO DEL ROJO
 
+CREATE TRIGGER ESE_CU_ELE.TR_Validar_Puntaje_Encuesta
+ON ESE_CU_ELE.Detalle_Encuesta_Puntaje
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
 
+    -- Si algún puntaje insertado o modificado está fuera del rango 1-10, cancelamos
+    IF EXISTS (SELECT 1 FROM inserted WHERE puntaje < 1 OR puntaje > 10)
+    BEGIN
+        RAISERROR ('Error: El puntaje de la encuesta debe estar estrictamente entre 1 y 10.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
 
 
 
