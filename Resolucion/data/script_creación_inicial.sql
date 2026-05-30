@@ -1358,7 +1358,21 @@ CREATE INDEX index_detallesolicitudcotizacion_ciudadid ON ESE_CU_ELE.Detalle_Sol
 
 -- ZONA DE TRABAJO DEL ROJO
 
+CREATE INDEX index_propuesta_solicitudid ON ESE_CU_ELE.Propuesta(nro_solicitud_id);
+CREATE INDEX index_propuesta_agentelegajo ON ESE_CU_ELE.Propuesta(agente_legajo);
 
+CREATE INDEX index_venta_agencianro ON ESE_CU_ELE.Venta(agencia_nro);
+CREATE INDEX index_venta_agentelegajo ON ESE_CU_ELE.Venta(agente_legajo);
+CREATE INDEX index_venta_clienteid ON ESE_CU_ELE.Venta(cliente_id);
+CREATE INDEX index_venta_canalventaid ON ESE_CU_ELE.Venta(canal_venta_id);
+CREATE INDEX index_venta_mediodepagoid ON ESE_CU_ELE.Venta(medio_de_pago_id);
+
+CREATE INDEX index_ventapropuesta_ventanro ON ESE_CU_ELE.Venta_Propuesta(venta_nro);
+
+CREATE INDEX index_encuesta_ventanro ON ESE_CU_ELE.Encuesta(venta_nro);
+CREATE INDEX index_encuesta_propuestanro ON ESE_CU_ELE.Encuesta(propuesta_nro);
+
+CREATE INDEX index_detalleencuestapuntaje_encuestaid ON ESE_CU_ELE.Detalle_Encuesta_Puntaje(encuesta_id);
 
 -- ZONA DE TRABAJO DEL AZUL
 
