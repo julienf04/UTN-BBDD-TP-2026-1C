@@ -2674,18 +2674,15 @@ ADD CONSTRAINT FK_HospedajeBeneficio_Hospedaje FOREIGN KEY(hospedaje_id) REFEREN
 ALTER TABLE ESE_CU_ELE.Excursion
 ADD CONSTRAINT FK_Excursion_Proveedor FOREIGN KEY(proveedor_id) REFERENCES ESE_CU_ELE.Proveedor_Excursion(proveedor_id);
 
------------- Venta_Excursion -------------
-
 ALTER TABLE ESE_CU_ELE.Venta_Excursion
-ADD CONSTRAINT FK_VentaExcursion_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_id),
+ADD CONSTRAINT FK_VentaExcursion_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_nro),
     CONSTRAINT FK_VentaExcursion_Excursion FOREIGN KEY(excursion_id) REFERENCES ESE_CU_ELE.Excursion(excursion_id);
 
 ------------ Venta_Hospedaje ---------------
 
 ALTER TABLE ESE_CU_ELE.Venta_Hospedaje
-ADD CONSTRAINT FK_VentaHospedaje_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_id),
+ADD CONSTRAINT FK_VentaHospedaje_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_nro),
     CONSTRAINT FK_VentaHospedaje_Habitacion FOREIGN KEY(habitacion_id) REFERENCES ESE_CU_ELE.Habitacion(habitacion_id);
-
 ---------------- Detalle_Propuesta_Hospedaje ----------------
 
 ALTER TABLE ESE_CU_ELE.Detalle_Propuesta_Hospedaje
