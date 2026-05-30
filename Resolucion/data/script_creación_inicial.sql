@@ -282,11 +282,11 @@ CREATE TABLE ESE_CU_ELE.Vuelo_Beneficio (
 --------------- Detalle_Propuesta_Vuelo ---------------
 
 CREATE TABLE ESE_CU_ELE.Detalle_Propuesta_Vuelo (
+    detalle_propuesta_vuelo_id BIGINT PRIMARY KEY IDENTITY(1,1),
     propuesta_nro BIGINT, -- FK
     vuelo_id BIGINT, -- FK
     cantidad_pasajes INT,
-    precio_unitario decimal(18,2),
-    CONSTRAINT PK_Detalle_Propuesta_Vuelo PRIMARY KEY (propuesta_nro, vuelo_id)
+    precio_unitario decimal(18,2)
 );
 
 --------------- Venta_Vuelo ---------------
@@ -584,6 +584,7 @@ ADD CONSTRAINT FK_DetallePropuestaHospedaje_Propuesta FOREIGN KEY(propuesta_nro)
 
 
 PRINT(N'Creadas las FK');
+GO
 
 ----------------------------------------------
 -- CREACION DE TRIGGERS SOBRE LAS TABLAS
