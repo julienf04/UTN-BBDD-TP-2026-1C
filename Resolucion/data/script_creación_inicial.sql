@@ -1655,7 +1655,7 @@ CREATE TABLE ESE_CU_ELE.Excursion (
 
 CREATE TABLE ESE_CU_ELE.Venta_Excursion (
     venta_excursion_id BIGINT PRIMARY KEY IDENTITY(1,1),
-    venta_id BIGINT, -- FK
+    venta_nro BIGINT, -- FK
     excursion_id BIGINT, -- FK
     fecha_reserva DATE,
     cant INT,
@@ -1667,7 +1667,7 @@ CREATE TABLE ESE_CU_ELE.Venta_Excursion (
 
 CREATE TABLE ESE_CU_ELE.Venta_Hospedaje (
     venta_hospedaje_id BIGINT PRIMARY KEY IDENTITY(1,1),
-    venta_id BIGINT, -- FK
+    venta_nro BIGINT, -- FK
     habitacion_id BIGINT, -- FK
     fecha_desde DATE,
     fecha_hasta DATE,
@@ -1688,20 +1688,6 @@ CREATE TABLE ESE_CU_ELE.Detalle_Propuesta_Hospedaje (
     CONSTRAINT PK_Detalle_Propuesta_Hospedaje
         PRIMARY KEY (propuesta_nro, habitacion_id)
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3570,14 +3556,15 @@ ADD CONSTRAINT FK_Excursion_Proveedor FOREIGN KEY(proveedor_id) REFERENCES ESE_C
 ------------ Venta_Excursion -------------
 
 ALTER TABLE ESE_CU_ELE.Venta_Excursion
-ADD CONSTRAINT FK_VentaExcursion_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_id),
+ADD CONSTRAINT FK_VentaExcursion_Venta FOREIGN KEY(venta_nro) REFERENCES ESE_CU_ELE.Venta(venta_nro),
     CONSTRAINT FK_VentaExcursion_Excursion FOREIGN KEY(excursion_id) REFERENCES ESE_CU_ELE.Excursion(excursion_id);
 
 ------------ Venta_Hospedaje ---------------
 
 ALTER TABLE ESE_CU_ELE.Venta_Hospedaje
-ADD CONSTRAINT FK_VentaHospedaje_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_id),
+ADD CONSTRAINT FK_VentaHospedaje_Venta FOREIGN KEY(venta_nro) REFERENCES ESE_CU_ELE.Venta(venta_nro),
     CONSTRAINT FK_VentaHospedaje_Habitacion FOREIGN KEY(habitacion_id) REFERENCES ESE_CU_ELE.Habitacion(habitacion_id);
+
 
 ---------------- Detalle_Propuesta_Hospedaje ----------------
 
@@ -7719,6 +7706,228 @@ WHERE viejo.Venta_Nro_Venta IS NOT NULL
 
 --ZONA DE TRABAJO DEL AMARILLO
 
+--------------- Hospedaje ---------------
+
+  INSERT INTO ESE_CU_ELE.Hospedaje
+(
+    ciudad_id,
+    hora_check_in,
+    hora_check_out,
+    direccion,
+    nombre
+)
+SELECT DISTINCT
+    nueva_ciudad.ciudad_id,
+    CAST(viejo.Hospedaje_Check_In AS TIME),
+    CAST(viejo.Hospedaje_Check_Out AS TIME),
+    viejo.Hospedaje_Direccion,
+    viejo.Hospedaje_Nombre
+FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Ciudad nueva_ciudad
+    ON nueva_ciudad.nombre = viejo.Hospedaje_Ciudad
+INNER JOIN ESE_CU_ELE.Pais nuevo_pais
+    ON nuevo_pais.pais_id = nueva_ciudad.pais_id
+   AND nuevo_pais.nombre = viejo.Hospedaje_Pais
+WHERE viejo.Hospedaje_Nombre IS NOT NULL
+  AND viejo.Hospedaje_Ciudad IS NOT NULL;
+
+
+--------------- Habitacion ---------------
+
+INSERT INTO ESE_CU_ELE.Habitacion
+(
+    hospedaje_id,
+    precio,
+    nombre,
+    descripcion
+)
+SELECT DISTINCT
+    nuevo_hospedaje.hospedaje_id,
+    viejo.Habitacion_Precio_Noche,
+    viejo.Habitacion_Nombre,
+    viejo.Habitacion_Descripcion
+FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Hospedaje nuevo_hospedaje
+    ON nuevo_hospedaje.nombre = viejo.Hospedaje_Nombre
+   AND nuevo_hospedaje.direccion = viejo.Hospedaje_Direccion
+WHERE viejo.Habitacion_Nombre IS NOT NULL;
+
+
+--------------- Beneficio_Hospedaje ---------------
+
+INSERT INTO ESE_CU_ELE.Beneficio_Hospedaje
+(
+    beneficio_nombre
+)
+VALUES
+(
+    'Desayuno'
+);
+
+
+--------------- Hospedaje_Beneficio ---------------
+
+INSERT INTO ESE_CU_ELE.Hospedaje_Beneficio
+(
+    hospedaje_id,
+    beneficio_id
+)
+SELECT DISTINCT
+    nuevo_hospedaje.hospedaje_id,
+    nuevo_beneficio.beneficio_id
+FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Hospedaje nuevo_hospedaje
+    ON nuevo_hospedaje.nombre = viejo.Hospedaje_Nombre
+   AND nuevo_hospedaje.direccion = viejo.Hospedaje_Direccion
+INNER JOIN ESE_CU_ELE.Beneficio_Hospedaje nuevo_beneficio
+    ON nuevo_beneficio.beneficio_nombre = 'Desayuno'
+WHERE viejo.Hospedaje_Incluye_Desayuno = 1
+  AND viejo.Hospedaje_Nombre IS NOT NULL;
+
+
+--------------- Proveedor_Excursion ---------------
+
+INSERT INTO ESE_CU_ELE.Proveedor_Excursion
+(
+    mail,
+    telefono,
+    nombre
+)
+SELECT DISTINCT
+    viejo.Proveedor_Mail,
+    viejo.Proveedor_Telefono,
+    viejo.Proveedor_Nombre
+FROM gd_esquema.Maestra AS viejo
+WHERE viejo.Proveedor_Nombre IS NOT NULL;
+
+
+--------------- Excursion ---------------
+
+INSERT INTO ESE_CU_ELE.Excursion
+(
+    proveedor_id,
+    horario,
+    duracion,
+    precio,
+    descripcion,
+    nombre
+)
+SELECT DISTINCT
+    nuevo_proveedor.proveedor_id,
+    viejo.Excursion_Horario,
+    viejo.Excursion_Duracion,
+    viejo.Excursion_Precio,
+    viejo.Excursion_Descripcion,
+    viejo.Excursion_Nombre
+FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Proveedor_Excursion nuevo_proveedor
+    ON nuevo_proveedor.nombre = viejo.Proveedor_Nombre
+   AND nuevo_proveedor.mail = viejo.Proveedor_Mail
+   AND nuevo_proveedor.telefono = viejo.Proveedor_Telefono
+WHERE viejo.Excursion_Nombre IS NOT NULL;
+
+
+--------------- Venta_Hospedaje ---------------
+
+INSERT INTO ESE_CU_ELE.Venta_Hospedaje
+(
+    venta_nro,
+    habitacion_id,
+    fecha_desde,
+    fecha_hasta,
+    cantidad,
+    precio_unitario,
+    codigo_reserva
+)
+SELECT DISTINCT
+    nueva_venta.venta_nro,
+    nueva_habitacion.habitacion_id,
+    viejo.Detalle_Venta_Hospedaje_Fecha_Desde,
+    viejo.Detalle_Venta_Hospedaje_Fecha_Hasta,
+    viejo.Detalle_Venta_Hospedaje_Cantidad,
+    viejo.Detalle_Venta_Hospedaje_Precio_Unitario,
+    viejo.Detalle_Venta_Hospedaje_Cod_Reserva
+FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Venta nueva_venta
+    ON nueva_venta.venta_nro = viejo.Venta_Nro_Venta
+INNER JOIN ESE_CU_ELE.Hospedaje nuevo_hospedaje
+    ON nuevo_hospedaje.nombre = viejo.Hospedaje_Nombre
+   AND nuevo_hospedaje.direccion = viejo.Hospedaje_Direccion
+INNER JOIN ESE_CU_ELE.Habitacion nueva_habitacion
+    ON nueva_habitacion.hospedaje_id = nuevo_hospedaje.hospedaje_id
+   AND nueva_habitacion.nombre = viejo.Habitacion_Nombre
+   AND nueva_habitacion.descripcion = viejo.Habitacion_Descripcion
+   AND nueva_habitacion.precio = viejo.Habitacion_Precio_Noche
+WHERE viejo.Detalle_Venta_Hospedaje_Cod_Reserva IS NOT NULL;
+
+
+--------------- Venta_Excursion ---------------
+
+INSERT INTO ESE_CU_ELE.Venta_Excursion
+(
+    venta_nro,
+    excursion_id,
+    fecha_reserva,
+    cant,
+    precio_unitario,
+    codigo_reserva
+)
+SELECT DISTINCT
+    nueva_venta.venta_nro,
+    nueva_excursion.excursion_id,
+    viejo.Detalle_Venta_Excursion_Fecha_Reserva,
+    viejo.Detalle_Venta_Excursion_Cant,
+    viejo.Detalle_Venta_Excursion_Precio_Unitario,
+    viejo.Detalle_Venta_Excursion_Cod_Reserva
+FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Venta nueva_venta
+    ON nueva_venta.venta_nro = viejo.Venta_Nro_Venta
+INNER JOIN ESE_CU_ELE.Excursion nueva_excursion
+    ON nueva_excursion.nombre = viejo.Excursion_Nombre
+   AND nueva_excursion.descripcion = viejo.Excursion_Descripcion
+   AND nueva_excursion.horario = viejo.Excursion_Horario
+   AND nueva_excursion.duracion = viejo.Excursion_Duracion
+   AND nueva_excursion.precio = viejo.Excursion_Precio
+WHERE viejo.Detalle_Venta_Excursion_Cod_Reserva IS NOT NULL;
+
+
+--------------- Detalle_Propuesta_Hospedaje ---------------
+
+INSERT INTO ESE_CU_ELE.Detalle_Propuesta_Hospedaje
+(
+    propuesta_nro,
+    habitacion_id,
+    fecha_desde,
+    fecha_hasta,
+    cantidad_habitaciones,
+    precio_unitario
+)
+SELECT DISTINCT
+    nueva_propuesta.propuesta_nro,
+    nueva_habitacion.habitacion_id,
+    viejo.Detalle_Propuesta_Hospedaje_Fecha_Desde,
+    viejo.Detalle_Propuesta_Hospedaje_Fecha_Hasta,
+    viejo.Detalle_Propuesta_Hospedaje_Cant,
+    viejo.Detalle_Propuesta_Hospedaje_Precio
+FROM gd_esquema.Maestra AS viejo
+INNER JOIN ESE_CU_ELE.Propuesta nueva_propuesta
+    ON nueva_propuesta.propuesta_nro = viejo.Propuesta_Nro_Propuesta
+INNER JOIN ESE_CU_ELE.Hospedaje nuevo_hospedaje
+    ON nuevo_hospedaje.nombre = viejo.Hospedaje_Nombre
+   AND nuevo_hospedaje.direccion = viejo.Hospedaje_Direccion
+INNER JOIN ESE_CU_ELE.Habitacion nueva_habitacion
+    ON nueva_habitacion.hospedaje_id = nuevo_hospedaje.hospedaje_id
+   AND nueva_habitacion.nombre = viejo.Habitacion_Nombre
+   AND nueva_habitacion.descripcion = viejo.Habitacion_Descripcion
+   AND nueva_habitacion.precio = viejo.Habitacion_Precio_Noche
+WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
+  AND viejo.Detalle_Propuesta_Hospedaje_Precio IS NOT NULL;
+
+
+
+
+
+
 
 
 
@@ -9776,6 +9985,36 @@ CREATE INDEX index_detallepropuestavuelo_vueloid ON ESE_CU_ELE.Detalle_Propuesta
 
 --ZONA DE TRABAJO DEL AMARILLO
 
+--------------- Hospedaje ---------------
+
+CREATE INDEX index_hospedaje_ciudadid
+ON ESE_CU_ELE.Hospedaje(ciudad_id);
+
+--------------- Habitacion ---------------
+
+CREATE INDEX index_habitacion_hospedajeid
+ON ESE_CU_ELE.Habitacion(hospedaje_id);
+
+--------------- Excursion ---------------
+
+CREATE INDEX index_excursion_proveedorid
+ON ESE_CU_ELE.Excursion(proveedor_id);
+
+--------------- Venta_Excursion ---------------
+
+CREATE INDEX index_ventaexcursion_ventanro
+ON ESE_CU_ELE.Venta_Excursion(venta_nro);
+
+CREATE INDEX index_ventaexcursion_excursionid
+ON ESE_CU_ELE.Venta_Excursion(excursion_id);
+
+--------------- Venta_Hospedaje ---------------
+
+CREATE INDEX index_ventahospedaje_ventanro
+ON ESE_CU_ELE.Venta_Hospedaje(venta_nro);
+
+CREATE INDEX index_ventahospedaje_habitacionid
+ON ESE_CU_ELE.Venta_Hospedaje(habitacion_id);
 
 
 
