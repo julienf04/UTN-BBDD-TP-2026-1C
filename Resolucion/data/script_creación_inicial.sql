@@ -282,11 +282,11 @@ CREATE TABLE ESE_CU_ELE.Vuelo_Beneficio (
 --------------- Detalle_Propuesta_Vuelo ---------------
 
 CREATE TABLE ESE_CU_ELE.Detalle_Propuesta_Vuelo (
+    detalle_propuesta_vuelo_id BIGINT PRIMARY KEY IDENTITY(1,1),
     propuesta_nro BIGINT, -- FK
     vuelo_id BIGINT, -- FK
     cantidad_pasajes INT,
-    precio_unitario decimal(18,2),
-    CONSTRAINT PK_Detalle_Propuesta_Vuelo PRIMARY KEY (propuesta_nro, vuelo_id)
+    precio_unitario decimal(18,2)
 );
 
 --------------- Venta_Vuelo ---------------
@@ -1042,11 +1042,11 @@ WHERE viejo.Vuelo_Incluye_Valija = 1
 --------------- Detalle_Propuesta_Vuelo ---------------
 
 INSERT INTO ESE_CU_ELE.Detalle_Propuesta_Vuelo (propuesta_nro, vuelo_id, cantidad_pasajes, precio_unitario)
-SELECT
+SELECT DISTINCT
     viejo.Propuesta_Nro_Propuesta,
     v.vuelo_id,
-    MAX(viejo.Detalle_Propuesta_Vuelo_Cant_Pasajes),
-    MAX(viejo.Detalle_Propuesta_Vuelo_Precio)
+    viejo.Detalle_Propuesta_Vuelo_Cant_Pasajes,
+    viejo.Detalle_Propuesta_Vuelo_Precio
 FROM gd_esquema.Maestra viejo
 INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
 INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
@@ -1057,8 +1057,7 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     AND v.aerolinea_id = ae.aerolinea_id
     AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
 WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
-  AND viejo.Vuelo_Fecha_Salida IS NOT NULL
-GROUP BY viejo.Propuesta_Nro_Propuesta, v.vuelo_id;
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
 
 
 --------------- Venta_Vuelo ---------------
