@@ -8,11 +8,11 @@
 ------ ZONA DE TRABAJO DEL AZUL (linea 1093)
 ------ ZONA DE TRABAJO DEL AMARILLO (linea 1593)
 
--- CREACION DE LAS FK DE LAS TABLAS (linea 2079)
+-- CREACION DE LAS FK DE LAS TABLAS (linea 1990)
 ------ ZONA DE TRABAJO DEL VERDE (linea 2082)
 ------ ZONA DE TRABAJO DEL ROJO (linea 2582)
 ------ ZONA DE TRABAJO DEL AZUL (linea 3083)
------- ZONA DE TRABAJO DEL AMARILLO (linea 3583)
+------ ZONA DE TRABAJO DEL AMARILLO (linea 3547)
 
 -- CREACION DE TRIGGERS SOBRE LAS TABLAS (linea 4070)
 ------ ZONA DE TRABAJO DEL VERDE (linea 4073)
@@ -1591,281 +1591,103 @@ CREATE TABLE ESE_CU_ELE.Venta_Vuelo (
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 --ZONA DE TRABAJO DEL AMARILLO
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+--------------- Hospedaje ---------------
+
+CREATE TABLE ESE_CU_ELE.Hospedaje (
+    hospedaje_id BIGINT PRIMARY KEY IDENTITY (1,1),
+    ciudad_id BIGINT, -- FK
+    hora_check_in TIME,
+    hora_check_out TIME,
+    direccion nvarchar(255),
+    nombre nvarchar(255)
+);
+
+--------------- Habitación ---------------
+
+CREATE TABLE ESE_CU_ELE.Habitacion (
+    habitacion_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    hospedaje_id BIGINT, -- FK
+    precio decimal(18,2),
+    nombre nvarchar(255),
+    descripcion nvarchar(max)
+);
+
+--------------- Beneficio_Hospedaje ---------------
+
+CREATE TABLE ESE_CU_ELE.Beneficio_Hospedaje (
+    beneficio_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    beneficio_nombre nvarchar(255) NOT NULL UNIQUE
+);
+
+--------------- Hospedaje_Beneficio ---------------
+
+CREATE TABLE ESE_CU_ELE.Hospedaje_Beneficio (
+    hospedaje_beneficio_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    hospedaje_id BIGINT, -- FK
+    beneficio_id BIGINT, -- FK
+    CONSTRAINT UQ_Hospedaje_Beneficio
+        UNIQUE (hospedaje_id, beneficio_id)
+);
+
+--------------- Proveedor_Excursion ---------------
+
+CREATE TABLE ESE_CU_ELE.Proveedor_Excursion (
+    proveedor_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    mail nvarchar(255),
+    telefono nvarchar(255),
+    nombre nvarchar(255)
+);
+
+--------------- Excursión ---------------
+
+CREATE TABLE ESE_CU_ELE.Excursion (
+    excursion_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    proveedor_id BIGINT, -- FK
+    horario nvarchar(50),
+    duracion INT,
+    precio decimal(18,2),
+    descripcion nvarchar(max),
+    nombre nvarchar(255)
+);
+
+--------------- Venta_Excursion ---------------
+
+CREATE TABLE ESE_CU_ELE.Venta_Excursion (
+    venta_excursion_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    venta_id BIGINT, -- FK
+    excursion_id BIGINT, -- FK
+    fecha_reserva DATE,
+    cant INT,
+    precio_unitario decimal(18,2),
+    codigo_reserva nvarchar(255)
+);
+
+--------------- Venta_Hospedaje ---------------
+
+CREATE TABLE ESE_CU_ELE.Venta_Hospedaje (
+    venta_hospedaje_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    venta_id BIGINT, -- FK
+    habitacion_id BIGINT, -- FK
+    fecha_desde DATE,
+    fecha_hasta DATE,
+    cantidad INT,
+    precio_unitario decimal(18,2),
+    codigo_reserva nvarchar(255)
+);
+
+---------- Detalle_Propuesta_Hospedaje -------------
+
+CREATE TABLE ESE_CU_ELE.Detalle_Propuesta_Hospedaje (
+    propuesta_nro BIGINT, -- FK
+    habitacion_id BIGINT, -- FK
+    fecha_desde DATE,
+    fecha_hasta DATE,
+    cantidad_habitaciones INT,
+    precio_unitario decimal(18,2),
+    CONSTRAINT PK_Detalle_Propuesta_Hospedaje
+        PRIMARY KEY (propuesta_nro, habitacion_id)
+);
 
 
 
@@ -3724,8 +3546,44 @@ ADD CONSTRAINT FK_VentaVuelo_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.V
 
 --ZONA DE TRABAJO DEL AMARILLO
 
+--------------- Hospedaje ---------------
 
+ALTER TABLE ESE_CU_ELE.Hospedaje
+ADD CONSTRAINT FK_Hospedaje_Ciudad FOREIGN KEY(ciudad_id) REFERENCES ESE_CU_ELE.Ciudad(ciudad_id);
 
+--------------- Habitación ---------------
+
+ALTER TABLE ESE_CU_ELE.Habitacion
+ADD CONSTRAINT FK_Habitacion_Hospedaje FOREIGN KEY(hospedaje_id) REFERENCES ESE_CU_ELE.Hospedaje(hospedaje_id);
+
+----------- Hospedaje_Beneficio ---------------
+
+ALTER TABLE ESE_CU_ELE.Hospedaje_Beneficio
+ADD CONSTRAINT FK_HospedajeBeneficio_Hospedaje FOREIGN KEY(hospedaje_id) REFERENCES ESE_CU_ELE.Hospedaje(hospedaje_id),
+    CONSTRAINT FK_HospedajeBeneficio_Beneficio FOREIGN KEY(beneficio_id) REFERENCES ESE_CU_ELE.Beneficio_Hospedaje(beneficio_id);
+
+--------------- Excursion ---------------
+
+ALTER TABLE ESE_CU_ELE.Excursion
+ADD CONSTRAINT FK_Excursion_Proveedor FOREIGN KEY(proveedor_id) REFERENCES ESE_CU_ELE.Proveedor_Excursion(proveedor_id);
+
+------------ Venta_Excursion -------------
+
+ALTER TABLE ESE_CU_ELE.Venta_Excursion
+ADD CONSTRAINT FK_VentaExcursion_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_id),
+    CONSTRAINT FK_VentaExcursion_Excursion FOREIGN KEY(excursion_id) REFERENCES ESE_CU_ELE.Excursion(excursion_id);
+
+------------ Venta_Hospedaje ---------------
+
+ALTER TABLE ESE_CU_ELE.Venta_Hospedaje
+ADD CONSTRAINT FK_VentaHospedaje_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_id),
+    CONSTRAINT FK_VentaHospedaje_Habitacion FOREIGN KEY(habitacion_id) REFERENCES ESE_CU_ELE.Habitacion(habitacion_id);
+
+---------------- Detalle_Propuesta_Hospedaje ----------------
+
+ALTER TABLE ESE_CU_ELE.Detalle_Propuesta_Hospedaje
+ADD CONSTRAINT FK_DetallePropuestaHospedaje_Propuesta FOREIGN KEY(propuesta_nro) REFERENCES ESE_CU_ELE.Propuesta(propuesta_nro),
+    CONSTRAINT FK_DetallePropuestaHospedaje_Habitacion FOREIGN KEY(habitacion_id) REFERENCES ESE_CU_ELE.Habitacion(habitacion_id);
 
 
 
