@@ -265,10 +265,12 @@ CREATE TABLE ESE_CU_ELE.Vuelo (
     aeropuerto_salida_id BIGINT, -- FK
     aeropuerto_llegada_id BIGINT, -- FK
     aerolinea_id BIGINT, -- FK
-    fecha_hora_salida DATETIME,
-    fecha_hora_llegada DATETIME,
+    fecha_salida DATE,
+    horario_salida TIME,
+    fecha_llegada DATE,
+    horario_llegada TIME,
     duracion INT,
-    CONSTRAINT unique_vuelo UNIQUE (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_hora_salida)
+    CONSTRAINT unique_vuelo UNIQUE (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_salida, horario_salida)
 );
 
 --------------- Vuelo_Beneficio ---------------
@@ -990,13 +992,15 @@ VALUES ('Carry On'), ('Valija');
 
 --------------- Vuelo ---------------
 
-INSERT INTO ESE_CU_ELE.Vuelo (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_hora_salida, fecha_hora_llegada, duracion)
+INSERT INTO ESE_CU_ELE.Vuelo (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_salida, horario_salida, fecha_llegada, horario_llegada, duracion)
 SELECT DISTINCT
     ap_sal.aeropuerto_id,
     ap_lle.aeropuerto_id,
     ae.aerolinea_id,
-    CAST(CONVERT(VARCHAR(10), viejo.Vuelo_Fecha_Salida, 120) + ' ' + CASE WHEN LEN(viejo.Vuelo_Horario_Salida) = 4 THEN '0' + viejo.Vuelo_Horario_Salida ELSE viejo.Vuelo_Horario_Salida END AS DATETIME),
-    CAST(CONVERT(VARCHAR(10), viejo.Vuelo_Fecha_Llegada, 120) + ' ' + CASE WHEN LEN(viejo.Vuelo_Horario_Llegada) = 4 THEN '0' + viejo.Vuelo_Horario_Llegada ELSE viejo.Vuelo_Horario_Llegada END AS DATETIME),
+    viejo.Vuelo_Fecha_Salida,
+    CAST(viejo.Vuelo_Horario_Salida AS TIME),
+    viejo.Vuelo_Fecha_Llegada,
+    CAST(viejo.Vuelo_Horario_Llegada AS TIME),
     viejo.Vuelo_Duracion
 FROM gd_esquema.Maestra viejo
 INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
@@ -1019,7 +1023,8 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
     AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
     AND v.aerolinea_id = ae.aerolinea_id
-    AND v.fecha_hora_salida = CAST(CONVERT(VARCHAR(10), viejo.Vuelo_Fecha_Salida, 120) + ' ' + CASE WHEN LEN(viejo.Vuelo_Horario_Salida) = 4 THEN '0' + viejo.Vuelo_Horario_Salida ELSE viejo.Vuelo_Horario_Salida END AS DATETIME)
+    AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
+    AND v.horario_salida = CAST(viejo.Vuelo_Horario_Salida AS TIME)
 INNER JOIN ESE_CU_ELE.Beneficio_Vuelo bf ON bf.beneficio_nombre = 'Carry On'
 WHERE viejo.Vuelo_Incluye_Carry = 1
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
@@ -1034,7 +1039,8 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
     AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
     AND v.aerolinea_id = ae.aerolinea_id
-    AND v.fecha_hora_salida = CAST(CONVERT(VARCHAR(10), viejo.Vuelo_Fecha_Salida, 120) + ' ' + CASE WHEN LEN(viejo.Vuelo_Horario_Salida) = 4 THEN '0' + viejo.Vuelo_Horario_Salida ELSE viejo.Vuelo_Horario_Salida END AS DATETIME)
+    AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
+    AND v.horario_salida = CAST(viejo.Vuelo_Horario_Salida AS TIME)
 INNER JOIN ESE_CU_ELE.Beneficio_Vuelo bf ON bf.beneficio_nombre = 'Valija'
 WHERE viejo.Vuelo_Incluye_Valija = 1
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
@@ -1056,7 +1062,8 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
     AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
     AND v.aerolinea_id = ae.aerolinea_id
-    AND v.fecha_hora_salida = CAST(CONVERT(VARCHAR(10), viejo.Vuelo_Fecha_Salida, 120) + ' ' + CASE WHEN LEN(viejo.Vuelo_Horario_Salida) = 4 THEN '0' + viejo.Vuelo_Horario_Salida ELSE viejo.Vuelo_Horario_Salida END AS DATETIME)
+    AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
+    AND v.horario_salida = CAST(viejo.Vuelo_Horario_Salida AS TIME)
 WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
 
@@ -1078,7 +1085,8 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
     AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
     AND v.aerolinea_id = ae.aerolinea_id
-    AND v.fecha_hora_salida = CAST(CONVERT(VARCHAR(10), viejo.Vuelo_Fecha_Salida, 120) + ' ' + CASE WHEN LEN(viejo.Vuelo_Horario_Salida) = 4 THEN '0' + viejo.Vuelo_Horario_Salida ELSE viejo.Vuelo_Horario_Salida END AS DATETIME)
+    AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
+    AND v.horario_salida = CAST(viejo.Vuelo_Horario_Salida AS TIME)
 WHERE viejo.Venta_Nro_Venta IS NOT NULL
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL
   AND viejo.Detalle_Venta_Vuelo_Cod_Reserva IS NOT NULL;
