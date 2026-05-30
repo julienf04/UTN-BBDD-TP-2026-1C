@@ -584,6 +584,7 @@ ADD CONSTRAINT FK_DetallePropuestaHospedaje_Propuesta FOREIGN KEY(propuesta_nro)
 
 
 PRINT(N'Creadas las FK');
+GO
 
 ----------------------------------------------
 -- CREACION DE TRIGGERS SOBRE LAS TABLAS
@@ -1041,11 +1042,11 @@ WHERE viejo.Vuelo_Incluye_Valija = 1
 --------------- Detalle_Propuesta_Vuelo ---------------
 
 INSERT INTO ESE_CU_ELE.Detalle_Propuesta_Vuelo (propuesta_nro, vuelo_id, cantidad_pasajes, precio_unitario)
-SELECT DISTINCT
+SELECT
     viejo.Propuesta_Nro_Propuesta,
     v.vuelo_id,
-    viejo.Detalle_Propuesta_Vuelo_Cant_Pasajes,
-    viejo.Detalle_Propuesta_Vuelo_Precio
+    MAX(viejo.Detalle_Propuesta_Vuelo_Cant_Pasajes),
+    MAX(viejo.Detalle_Propuesta_Vuelo_Precio)
 FROM gd_esquema.Maestra viejo
 INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
 INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
@@ -1056,7 +1057,8 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     AND v.aerolinea_id = ae.aerolinea_id
     AND v.fecha_hora_salida = CAST(CAST(viejo.Vuelo_Fecha_Salida AS VARCHAR(10)) + ' ' + viejo.Vuelo_Horario_Salida AS DATETIME)
 WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
-  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
+  AND viejo.Vuelo_Fecha_Salida IS NOT NULL
+GROUP BY viejo.Propuesta_Nro_Propuesta, v.vuelo_id;
 
 
 --------------- Venta_Vuelo ---------------
