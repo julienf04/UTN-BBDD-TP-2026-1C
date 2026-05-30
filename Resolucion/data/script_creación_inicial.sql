@@ -266,9 +266,9 @@ CREATE TABLE ESE_CU_ELE.Vuelo (
     aeropuerto_llegada_id BIGINT, -- FK
     aerolinea_id BIGINT, -- FK
     fecha_salida DATE,
-    horario_salida TIME,
+    horario_salida nvarchar(10),
     fecha_llegada DATE,
-    horario_llegada TIME,
+    horario_llegada nvarchar(10),
     duracion INT,
     CONSTRAINT unique_vuelo UNIQUE (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_salida, horario_salida)
 );
@@ -312,8 +312,8 @@ CREATE TABLE ESE_CU_ELE.Venta_Vuelo (
 CREATE TABLE ESE_CU_ELE.Hospedaje (
     hospedaje_id BIGINT PRIMARY KEY IDENTITY (1,1),
     ciudad_id BIGINT, -- FK
-    hora_check_in TIME,
-    hora_check_out TIME,
+    hora_check_in nvarchar(10),
+    hora_check_out nvarchar(10),
     direccion nvarchar(255),
     nombre nvarchar(255)
 );
@@ -998,9 +998,9 @@ SELECT DISTINCT
     ap_lle.aeropuerto_id,
     ae.aerolinea_id,
     viejo.Vuelo_Fecha_Salida,
-    CAST(viejo.Vuelo_Horario_Salida AS TIME),
+    viejo.Vuelo_Horario_Salida,
     viejo.Vuelo_Fecha_Llegada,
-    CAST(viejo.Vuelo_Horario_Llegada AS TIME),
+    viejo.Vuelo_Horario_Llegada,
     viejo.Vuelo_Duracion
 FROM gd_esquema.Maestra viejo
 INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
@@ -1024,7 +1024,7 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
     AND v.aerolinea_id = ae.aerolinea_id
     AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
-    AND v.horario_salida = CAST(viejo.Vuelo_Horario_Salida AS TIME)
+    AND v.horario_salida = viejo.Vuelo_Horario_Salida
 INNER JOIN ESE_CU_ELE.Beneficio_Vuelo bf ON bf.beneficio_nombre = 'Carry On'
 WHERE viejo.Vuelo_Incluye_Carry = 1
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
@@ -1040,7 +1040,7 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
     AND v.aerolinea_id = ae.aerolinea_id
     AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
-    AND v.horario_salida = CAST(viejo.Vuelo_Horario_Salida AS TIME)
+    AND v.horario_salida = viejo.Vuelo_Horario_Salida
 INNER JOIN ESE_CU_ELE.Beneficio_Vuelo bf ON bf.beneficio_nombre = 'Valija'
 WHERE viejo.Vuelo_Incluye_Valija = 1
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
@@ -1063,7 +1063,7 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
     AND v.aerolinea_id = ae.aerolinea_id
     AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
-    AND v.horario_salida = CAST(viejo.Vuelo_Horario_Salida AS TIME)
+    AND v.horario_salida = viejo.Vuelo_Horario_Salida
 WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
 
@@ -1086,7 +1086,7 @@ INNER JOIN ESE_CU_ELE.Vuelo v
     AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
     AND v.aerolinea_id = ae.aerolinea_id
     AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
-    AND v.horario_salida = CAST(viejo.Vuelo_Horario_Salida AS TIME)
+    AND v.horario_salida = viejo.Vuelo_Horario_Salida
 WHERE viejo.Venta_Nro_Venta IS NOT NULL
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL
   AND viejo.Detalle_Venta_Vuelo_Cod_Reserva IS NOT NULL;
@@ -1106,8 +1106,8 @@ WHERE viejo.Venta_Nro_Venta IS NOT NULL
 )
 SELECT DISTINCT
     nueva_ciudad.ciudad_id,
-    CAST(viejo.Hospedaje_Check_In AS TIME),
-    CAST(viejo.Hospedaje_Check_Out AS TIME),
+    viejo.Hospedaje_Check_In,
+    viejo.Hospedaje_Check_Out,
     viejo.Hospedaje_Direccion,
     viejo.Hospedaje_Nombre
 FROM gd_esquema.Maestra AS viejo
