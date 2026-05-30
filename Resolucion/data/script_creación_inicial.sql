@@ -266,9 +266,9 @@ CREATE TABLE ESE_CU_ELE.Vuelo (
     aeropuerto_llegada_id BIGINT, -- FK
     aerolinea_id BIGINT, -- FK
     fecha_salida DATE,
-    horario_salida nvarchar(10),
+    horario_salida nvarchar(50),
     fecha_llegada DATE,
-    horario_llegada nvarchar(10),
+    horario_llegada nvarchar(50),
     duracion INT,
     CONSTRAINT unique_vuelo UNIQUE (aeropuerto_salida_id, aeropuerto_llegada_id, aerolinea_id, fecha_salida, horario_salida)
 );
@@ -312,8 +312,8 @@ CREATE TABLE ESE_CU_ELE.Venta_Vuelo (
 CREATE TABLE ESE_CU_ELE.Hospedaje (
     hospedaje_id BIGINT PRIMARY KEY IDENTITY (1,1),
     ciudad_id BIGINT, -- FK
-    hora_check_in nvarchar(10),
-    hora_check_out nvarchar(10),
+    hora_check_in nvarchar(50),
+    hora_check_out nvarchar(50),
     direccion nvarchar(255),
     nombre nvarchar(255)
 );
