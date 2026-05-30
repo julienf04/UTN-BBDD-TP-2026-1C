@@ -1,55 +1,18 @@
-﻿------------------ DIVISION DEL SCRIPT (las lineas son aproximadas) ------------------
-
--- CREACION DEL ESQUEMA (linea 41)
-
--- CREACION DE LAS TABLAS CON SUS CONSTRAINS (EXCEPTO LAS FK) (linea 89)
------- ZONA DE TRABAJO DEL VERDE (linea 92)
------- ZONA DE TRABAJO DEL ROJO (linea 592)
------- ZONA DE TRABAJO DEL AZUL (linea 1093)
------- ZONA DE TRABAJO DEL AMARILLO (linea 1593)
-
--- CREACION DE LAS FK DE LAS TABLAS (linea 1990)
------- ZONA DE TRABAJO DEL VERDE (linea 2082)
------- ZONA DE TRABAJO DEL ROJO (linea 2582)
------- ZONA DE TRABAJO DEL AZUL (linea 3083)
------- ZONA DE TRABAJO DEL AMARILLO (linea 3547)
-
--- CREACION DE TRIGGERS SOBRE LAS TABLAS (linea 4070)
------- ZONA DE TRABAJO DEL VERDE (linea 4073)
------- ZONA DE TRABAJO DEL ROJO (linea 4573)
------- ZONA DE TRABAJO DEL AZUL (linea 5074)
------- ZONA DE TRABAJO DEL AMARILLO (linea 5574)
-
--- MIGRACION DE LOS DATOS (linea 6061)
------- ZONA DE TRABAJO DEL VERDE (linea 6069)
------- ZONA DE TRABAJO DEL ROJO (linea 6569)
------- ZONA DE TRABAJO DEL AZUL (linea 7070)
------- ZONA DE TRABAJO DEL AMARILLO (linea 7570)
-
--- CREACION DE INDICES (linea 8065)
------- ZONA DE TRABAJO DEL VERDE (linea 8068)
------- ZONA DE TRABAJO DEL ROJO (linea 8568)
------- ZONA DE TRABAJO DEL AZUL (linea 9069)
------- ZONA DE TRABAJO DEL AMARILLO (linea 9569)
-
-
-
--- ZONA DE TRABAJO GLOBAL INICIAL
-
-
-----------------------------------------------
+﻿----------------------------------------------
 -- CREACION DEL ESQUEMA
 ----------------------------------------------
 
 CREATE SCHEMA ESE_CU_ELE;
 GO
+
 PRINT(N'Esquema ESE_CU_ELE creado');
+GO
+
+
 
 ----------------------------------------------
 -- CREACION DE LAS TABLAS CON SUS CONSTRAINS (EXCEPTO LAS FK)
 ----------------------------------------------
-
--- ZONA DE TRABAJO DEL VERDE
 
 --------------- Pais ---------------
 
@@ -146,30 +109,29 @@ CREATE TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion (
     observaciones nvarchar(max)
 );
 
-
-
--- ZONA DE TRABAJO DEL ROJO
-
-
 --------------- Canal_De_Venta ---------------
+
 CREATE TABLE ESE_CU_ELE.Canal_De_Venta (
     canal_venta_id BIGINT PRIMARY KEY IDENTITY(1,1),
     canal nvarchar(255) UNIQUE
 );
 
 --------------- Medio_De_Pago ---------------
+
 CREATE TABLE ESE_CU_ELE.Medio_De_Pago (
     medio_de_pago_id BIGINT PRIMARY KEY IDENTITY(1,1),
     descripcion nvarchar(255) UNIQUE
 );
 
 --------------- Aspecto ---------------
+
 CREATE TABLE ESE_CU_ELE.Aspecto (
     aspecto_id BIGINT PRIMARY KEY IDENTITY(1,1),
     nombre nvarchar(255) UNIQUE
 );
 
 --------------- Propuesta ---------------
+
 CREATE TABLE ESE_CU_ELE.Propuesta (
     propuesta_nro BIGINT PRIMARY KEY,
     nro_solicitud_id BIGINT, -- FK hacia Solicitud_De_Cotizacion
@@ -184,6 +146,7 @@ CREATE TABLE ESE_CU_ELE.Propuesta (
 );
 
 --------------- Venta ---------------
+
 CREATE TABLE ESE_CU_ELE.Venta (
     venta_nro BIGINT PRIMARY KEY,
     agencia_nro BIGINT,         -- FK hacia Agencia
@@ -197,6 +160,7 @@ CREATE TABLE ESE_CU_ELE.Venta (
 );
 
 --------------- Venta_Propuesta ---------------
+
 CREATE TABLE ESE_CU_ELE.Venta_Propuesta (
     propuesta_nro BIGINT, -- FK
     venta_nro BIGINT,     -- FK
@@ -204,6 +168,7 @@ CREATE TABLE ESE_CU_ELE.Venta_Propuesta (
 );
 
 --------------- Encuesta ---------------
+
 CREATE TABLE ESE_CU_ELE.Encuesta (
     encuesta_id BIGINT PRIMARY KEY, -- Guardamos el código original directo de la Maestra
     venta_nro BIGINT,     -- FK hacia Venta
@@ -213,15 +178,13 @@ CREATE TABLE ESE_CU_ELE.Encuesta (
 );
 
 --------------- Detalle_Encuesta_Puntaje ---------------
+
 CREATE TABLE ESE_CU_ELE.Detalle_Encuesta_Puntaje (
     aspecto_id BIGINT,  -- FK
     encuesta_id BIGINT, -- FK
     puntaje INT,
     CONSTRAINT PK_Detalle_Encuesta_Puntaje PRIMARY KEY (aspecto_id, encuesta_id)
 );
-
-
--- ZONA DE TRABAJO DEL AZUL
 
 --------------- Alianza ---------------
 
@@ -302,11 +265,6 @@ CREATE TABLE ESE_CU_ELE.Venta_Vuelo (
     cod_reserva nvarchar(255)
 );
 
-
-
-
-
---ZONA DE TRABAJO DEL AMARILLO
 --------------- Hospedaje ---------------
 
 CREATE TABLE ESE_CU_ELE.Hospedaje (
@@ -405,20 +363,14 @@ CREATE TABLE ESE_CU_ELE.Detalle_Propuesta_Hospedaje (
 );
 
 
-
-
-
-
-
-
 PRINT(N'Tablas creadas (sin las FK)');
+GO
+
+
 
 ----------------------------------------------
 -- CREACION DE LAS FK DE LAS TABLAS
 ----------------------------------------------
-
--- ZONA DE TRABAJO DEL VERDE
-
 
 --------------- Ciudad ---------------
 
@@ -458,25 +410,14 @@ ALTER TABLE ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion
 ADD CONSTRAINT FK_DetalleSolicitudCotizacion_Solicitud_Cotizacion FOREIGN KEY(solicitud_cotizacion_id) 
         REFERENCES ESE_CU_ELE.Solicitud_De_Cotizacion(nro_solicitud_id);
 
-
-
-
-
-
-
--- ZONA DE TRABAJO DEL ROJO
-
-
-----------------------------------------------
--- ZONA DE TRABAJO DEL ROJO (CONSTRAINTS FK)
-----------------------------------------------
-
 --------------- Propuesta ---------------
+
 ALTER TABLE ESE_CU_ELE.Propuesta
 ADD CONSTRAINT FK_Propuesta_Solicitud FOREIGN KEY(nro_solicitud_id) REFERENCES ESE_CU_ELE.Solicitud_De_Cotizacion(nro_solicitud_id),
     CONSTRAINT FK_Propuesta_Agente FOREIGN KEY(agente_legajo) REFERENCES ESE_CU_ELE.Agente(agente_legajo);
 
 --------------- Venta ---------------
+
 ALTER TABLE ESE_CU_ELE.Venta
 ADD CONSTRAINT FK_Venta_Agencia FOREIGN KEY(agencia_nro) REFERENCES ESE_CU_ELE.Agencia(agencia_nro),
     CONSTRAINT FK_Venta_Agente FOREIGN KEY(agente_legajo) REFERENCES ESE_CU_ELE.Agente(agente_legajo),
@@ -485,22 +426,22 @@ ADD CONSTRAINT FK_Venta_Agencia FOREIGN KEY(agencia_nro) REFERENCES ESE_CU_ELE.A
     CONSTRAINT FK_Venta_MedioPago FOREIGN KEY(medio_de_pago_id) REFERENCES ESE_CU_ELE.Medio_De_Pago(medio_de_pago_id);
 
 --------------- Venta_Propuesta ---------------
+
 ALTER TABLE ESE_CU_ELE.Venta_Propuesta
 ADD CONSTRAINT FK_VentaPropuesta_Propuesta FOREIGN KEY(propuesta_nro) REFERENCES ESE_CU_ELE.Propuesta(propuesta_nro),
     CONSTRAINT FK_VentaPropuesta_Venta FOREIGN KEY(venta_nro) REFERENCES ESE_CU_ELE.Venta(venta_nro);
 
 --------------- Encuesta ---------------
+
 ALTER TABLE ESE_CU_ELE.Encuesta
 ADD CONSTRAINT FK_Encuesta_Venta FOREIGN KEY(venta_nro) REFERENCES ESE_CU_ELE.Venta(venta_nro),
     CONSTRAINT FK_Encuesta_Propuesta FOREIGN KEY(propuesta_nro) REFERENCES ESE_CU_ELE.Propuesta(propuesta_nro);
 
 --------------- Detalle_Encuesta_Puntaje ---------------
+
 ALTER TABLE ESE_CU_ELE.Detalle_Encuesta_Puntaje
 ADD CONSTRAINT FK_DetalleEncuesta_Aspecto FOREIGN KEY(aspecto_id) REFERENCES ESE_CU_ELE.Aspecto(aspecto_id),
     CONSTRAINT FK_DetalleEncuesta_Encuesta FOREIGN KEY(encuesta_id) REFERENCES ESE_CU_ELE.Encuesta(encuesta_id);
-
-
--- ZONA DE TRABAJO DEL AZUL
 
 --------------- Aerolinea ---------------
 
@@ -538,12 +479,6 @@ ALTER TABLE ESE_CU_ELE.Venta_Vuelo
 ADD CONSTRAINT FK_VentaVuelo_Venta FOREIGN KEY(venta_id) REFERENCES ESE_CU_ELE.Venta(venta_nro),
     CONSTRAINT FK_VentaVuelo_Vuelo FOREIGN KEY(vuelo_id) REFERENCES ESE_CU_ELE.Vuelo(vuelo_id);
 
-
-
-
-
---ZONA DE TRABAJO DEL AMARILLO
-
 --------------- Hospedaje ---------------
 
 ALTER TABLE ESE_CU_ELE.Hospedaje
@@ -575,7 +510,6 @@ ALTER TABLE ESE_CU_ELE.Venta_Hospedaje
 ADD CONSTRAINT FK_VentaHospedaje_Venta FOREIGN KEY(venta_nro) REFERENCES ESE_CU_ELE.Venta(venta_nro),
     CONSTRAINT FK_VentaHospedaje_Habitacion FOREIGN KEY(habitacion_id) REFERENCES ESE_CU_ELE.Habitacion(habitacion_id);
 
-
 ---------------- Detalle_Propuesta_Hospedaje ----------------
 
 ALTER TABLE ESE_CU_ELE.Detalle_Propuesta_Hospedaje
@@ -583,24 +517,17 @@ ADD CONSTRAINT FK_DetallePropuestaHospedaje_Propuesta FOREIGN KEY(propuesta_nro)
     CONSTRAINT FK_DetallePropuestaHospedaje_Habitacion FOREIGN KEY(habitacion_id) REFERENCES ESE_CU_ELE.Habitacion(habitacion_id);
 
 
-
-
 PRINT(N'Creadas las FK');
 GO
+
+
 
 ----------------------------------------------
 -- CREACION DE TRIGGERS SOBRE LAS TABLAS
 ----------------------------------------------
 
--- ZONA DE TRABAJO DEL VERDE
+------------ Detalle_Encuesta_Puntaje Trigger al puntaje ---------------
 
-
-
-
-
--- ZONA DE TRABAJO DEL ROJO
-
-GO
 CREATE TRIGGER ESE_CU_ELE.TR_Validar_Puntaje_Encuesta
 ON ESE_CU_ELE.Detalle_Encuesta_Puntaje
 AFTER INSERT, UPDATE
@@ -618,27 +545,18 @@ END;
 GO
 
 
-
--- ZONA DE TRABAJO DEL AZUL
-
-
---ZONA DE TRABAJO DEL AMARILLO
-
-
-
 PRINT(N'Creados los Triggers');
+GO
+
+
 
 ----------------------------------------------
 -- MIGRACION DE LOS DATOS
 ----------------------------------------------
 
-GO
 CREATE PROCEDURE ESE_CU_ELE.migracion
 AS
 BEGIN
-
--- ZONA DE TRABAJO DEL VERDE
-
 
 --------------- Pais ---------------
 
@@ -828,12 +746,8 @@ WHERE
     viejo.Solicitud_Nro_Solicitud IS NOT NULL;
 
 
-
--- ZONA DE TRABAJO DEL ROJO
-
-PRINT 'Migrando bloque Rojo...';
-
 --------------- Canal_De_Venta ---------------
+
 INSERT INTO ESE_CU_ELE.Canal_De_Venta (canal)
 SELECT DISTINCT Venta_Canal_Venta
 FROM gd_esquema.Maestra
@@ -841,6 +755,7 @@ WHERE Venta_Canal_Venta IS NOT NULL;
 
 
 --------------- Medio_De_Pago ---------------
+
 INSERT INTO ESE_CU_ELE.Medio_De_Pago (descripcion)
 SELECT DISTINCT Venta_Medio_Pago
 FROM gd_esquema.Maestra
@@ -848,6 +763,7 @@ WHERE Venta_Medio_Pago IS NOT NULL;
 
 
 --------------- Aspecto ---------------
+
 INSERT INTO ESE_CU_ELE.Aspecto (nombre)
 SELECT DISTINCT Aspecto_Aspecto
 FROM gd_esquema.Maestra
@@ -855,6 +771,7 @@ WHERE Aspecto_Aspecto IS NOT NULL;
 
 
 --------------- Propuesta ---------------
+
 INSERT INTO ESE_CU_ELE.Propuesta (propuesta_nro, nro_solicitud_id, agente_legajo, fecha_emision, fecha_vigencia_hasta, fecha_desde, fecha_hasta, descuento, importe_total, estado)
 SELECT DISTINCT 
     Propuesta_Nro_Propuesta,
@@ -872,6 +789,7 @@ WHERE Propuesta_Nro_Propuesta IS NOT NULL;
 
 
 --------------- Venta ---------------
+
 INSERT INTO ESE_CU_ELE.Venta (venta_nro, agencia_nro, agente_legajo, cliente_id, canal_venta_id, medio_de_pago_id, descuento, importe_total, fecha)
 SELECT DISTINCT 
     viejo.Venta_Nro_Venta,
@@ -896,6 +814,7 @@ WHERE viejo.Venta_Nro_Venta IS NOT NULL;
 
 
 --------------- Venta_Propuesta ---------------
+
 INSERT INTO ESE_CU_ELE.Venta_Propuesta (propuesta_nro, venta_nro)
 SELECT DISTINCT 
     Propuesta_Nro_Propuesta,
@@ -906,6 +825,7 @@ WHERE Venta_Nro_Venta IS NOT NULL
 
 
 --------------- Encuesta ---------------
+
 INSERT INTO ESE_CU_ELE.Encuesta (encuesta_id, venta_nro, propuesta_nro, fecha, comentario)
 SELECT DISTINCT 
     Encuesta_Codigo_Encuesta,
@@ -918,6 +838,7 @@ WHERE Encuesta_Codigo_Encuesta IS NOT NULL;
 
 
 --------------- Detalle_Encuesta_Puntaje ---------------
+
 INSERT INTO ESE_CU_ELE.Detalle_Encuesta_Puntaje (encuesta_id, aspecto_id, puntaje)
 SELECT 
     viejo.Encuesta_Codigo_Encuesta,
@@ -929,10 +850,6 @@ INNER JOIN ESE_CU_ELE.Aspecto asp
 WHERE viejo.Encuesta_Codigo_Encuesta IS NOT NULL 
   AND viejo.Aspecto_Aspecto IS NOT NULL;
 
-PRINT 'Bloque Rojo migrado con éxito.';
-
-
--- ZONA DE TRABAJO DEL AZUL
 
 --------------- Alianza ---------------
 
@@ -1091,8 +1008,6 @@ WHERE viejo.Venta_Nro_Venta IS NOT NULL
   AND viejo.Vuelo_Fecha_Salida IS NOT NULL
   AND viejo.Detalle_Venta_Vuelo_Cod_Reserva IS NOT NULL;
 
-
---ZONA DE TRABAJO DEL AMARILLO
 
 --------------- Hospedaje ---------------
 
@@ -1311,27 +1226,28 @@ INNER JOIN ESE_CU_ELE.Habitacion nueva_habitacion
 WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
   AND viejo.Detalle_Propuesta_Hospedaje_Precio IS NOT NULL;
 
-END;
+END; -- FIN PROCEDIMIENTO migracion
 GO
+
+
+--------------- Transaccion de la migracion ---------------
 
 BEGIN TRY
     BEGIN TRANSACTION
     EXECUTE ESE_CU_ELE.migracion;
-    PRINT('Migracion de los datos hecha');
+    PRINT(N'Migracion de los datos hecha');
     COMMIT;
 END TRY
 BEGIN CATCH
     ROLLBACK;
-    PRINT('Se hizo un Rollback en la migracion debido al siguiente error: ' + ERROR_MESSAGE());
+    PRINT(N'Se hizo un Rollback en la migracion debido al siguiente error: ' + ERROR_MESSAGE());
 END CATCH;
+
 
 
 ----------------------------------------------
 -- CREACION DE INDICES
 ----------------------------------------------
-
--- ZONA DE TRABAJO DEL VERDE
-
 
 --------------- Ciudad ---------------
 
@@ -1365,11 +1281,12 @@ CREATE INDEX index_solicitudcotizacion_agentelegajo ON ESE_CU_ELE.Solicitud_De_C
 CREATE INDEX index_detallesolicitudcotizacion_solicitudcotizacionid ON ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion(solicitud_cotizacion_id);
 CREATE INDEX index_detallesolicitudcotizacion_ciudadid ON ESE_CU_ELE.Detalle_Solicitud_De_Cotizacion(ciudad_id);
 
-
--- ZONA DE TRABAJO DEL ROJO
+--------------- Propuesta ---------------
 
 CREATE INDEX index_propuesta_solicitudid ON ESE_CU_ELE.Propuesta(nro_solicitud_id);
 CREATE INDEX index_propuesta_agentelegajo ON ESE_CU_ELE.Propuesta(agente_legajo);
+
+--------------- Venta ---------------
 
 CREATE INDEX index_venta_agencianro ON ESE_CU_ELE.Venta(agencia_nro);
 CREATE INDEX index_venta_agentelegajo ON ESE_CU_ELE.Venta(agente_legajo);
@@ -1377,14 +1294,18 @@ CREATE INDEX index_venta_clienteid ON ESE_CU_ELE.Venta(cliente_id);
 CREATE INDEX index_venta_canalventaid ON ESE_CU_ELE.Venta(canal_venta_id);
 CREATE INDEX index_venta_mediodepagoid ON ESE_CU_ELE.Venta(medio_de_pago_id);
 
+--------------- Venta_Propuesta ---------------
+
 CREATE INDEX index_ventapropuesta_ventanro ON ESE_CU_ELE.Venta_Propuesta(venta_nro);
+
+--------------- Encuesta ---------------
 
 CREATE INDEX index_encuesta_ventanro ON ESE_CU_ELE.Encuesta(venta_nro);
 CREATE INDEX index_encuesta_propuestanro ON ESE_CU_ELE.Encuesta(propuesta_nro);
 
-CREATE INDEX index_detalleencuestapuntaje_encuestaid ON ESE_CU_ELE.Detalle_Encuesta_Puntaje(encuesta_id);
+--------------- Detalle_Encuesta_Puntaje ---------------
 
--- ZONA DE TRABAJO DEL AZUL
+CREATE INDEX index_detalleencuestapuntaje_encuestaid ON ESE_CU_ELE.Detalle_Encuesta_Puntaje(encuesta_id);
 
 --------------- Aerolinea ---------------
 
@@ -1411,42 +1332,37 @@ CREATE INDEX index_ventavuelo_vueloid ON ESE_CU_ELE.Venta_Vuelo(vuelo_id);
 CREATE INDEX index_detallepropuestavuelo_propuestanro ON ESE_CU_ELE.Detalle_Propuesta_Vuelo(propuesta_nro);
 CREATE INDEX index_detallepropuestavuelo_vueloid ON ESE_CU_ELE.Detalle_Propuesta_Vuelo(vuelo_id);
 
-
-
---ZONA DE TRABAJO DEL AMARILLO
-
 --------------- Hospedaje ---------------
 
-CREATE INDEX index_hospedaje_ciudadid
-ON ESE_CU_ELE.Hospedaje(ciudad_id);
+CREATE INDEX index_hospedaje_ciudadid ON ESE_CU_ELE.Hospedaje(ciudad_id);
 
 --------------- Habitacion ---------------
 
-CREATE INDEX index_habitacion_hospedajeid
-ON ESE_CU_ELE.Habitacion(hospedaje_id);
+CREATE INDEX index_habitacion_hospedajeid ON ESE_CU_ELE.Habitacion(hospedaje_id);
 
 --------------- Excursion ---------------
 
-CREATE INDEX index_excursion_proveedorid
-ON ESE_CU_ELE.Excursion(proveedor_id);
+CREATE INDEX index_excursion_proveedorid ON ESE_CU_ELE.Excursion(proveedor_id);
 
 --------------- Venta_Excursion ---------------
 
-CREATE INDEX index_ventaexcursion_ventanro
-ON ESE_CU_ELE.Venta_Excursion(venta_nro);
-
-CREATE INDEX index_ventaexcursion_excursionid
-ON ESE_CU_ELE.Venta_Excursion(excursion_id);
+CREATE INDEX index_ventaexcursion_ventanro ON ESE_CU_ELE.Venta_Excursion(venta_nro);
+CREATE INDEX index_ventaexcursion_excursionid ON ESE_CU_ELE.Venta_Excursion(excursion_id);
 
 --------------- Venta_Hospedaje ---------------
 
-CREATE INDEX index_ventahospedaje_ventanro
-ON ESE_CU_ELE.Venta_Hospedaje(venta_nro);
+CREATE INDEX index_ventahospedaje_ventanro ON ESE_CU_ELE.Venta_Hospedaje(venta_nro);
 
-CREATE INDEX index_ventahospedaje_habitacionid
-ON ESE_CU_ELE.Venta_Hospedaje(habitacion_id);
+CREATE INDEX index_ventahospedaje_habitacionid ON ESE_CU_ELE.Venta_Hospedaje(habitacion_id);
 
 
 PRINT(N'Indices creados');
+
+
+
+
+----------------------------------------------
+-- FIN MIGRACION
+----------------------------------------------
 
 PRINT(N'Migracion total completada');
