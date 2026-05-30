@@ -597,6 +597,7 @@ PRINT(N'Creadas las FK');
 
 -- ZONA DE TRABAJO DEL ROJO
 
+GO
 CREATE TRIGGER ESE_CU_ELE.TR_Validar_Puntaje_Encuesta
 ON ESE_CU_ELE.Detalle_Encuesta_Puntaje
 AFTER INSERT, UPDATE
