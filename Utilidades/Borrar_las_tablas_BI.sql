@@ -1,0 +1,36 @@
+-- Script que borra todas las tablas y todo de nuestra resolucion de la entrega BI del TP
+-- Si necesito probar cosas de nuevo, borro todo y listo
+
+
+-- Uso la base de datos del TP
+USE GD1C2026
+GO
+
+
+-- Borro las tablas desde las hojas hasta las raices (primero los Hechos y despues las Dimensiones)
+-- Hechos
+DROP TABLE ESE_CU_ELE.BI_Hecho_Solicitud_De_Cotizacion;
+--Dimensiones
+DROP TABLE ESE_CU_ELE.BI_Dim_Tiempo;
+DROP TABLE ESE_CU_ELE.BI_Dim_Temporada;
+DROP TABLE ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente;
+DROP TABLE ESE_CU_ELE.BI_Dim_Rango_Etario_Agente;
+DROP TABLE ESE_CU_ELE.BI_Dim_Estado_De_Propuesta;
+DROP TABLE ESE_CU_ELE.BI_Dim_Canal_De_Venta;
+DROP TABLE ESE_CU_ELE.BI_Dim_Tipo_Servicio;
+DROP TABLE ESE_CU_ELE.BI_Dim_Aspecto;
+DROP TABLE ESE_CU_ELE.BI_Dim_Puntaje;
+
+
+-- Borro las stored procedures de la migracion
+DROP PROCEDURE ESE_CU_ELE.BI_migracion_hechos;
+GO
+DROP PROCEDURE ESE_CU_ELE.BI_migracion_dimensiones;
+GO
+
+-- Borro las vistas
+
+DROP VIEW ESE_CU_ELE.BI_View_Ranking_De_Solicitudes_Por_Temporada;
+GO
+DROP VIEW ESE_CU_ELE.BI_View_Anticipacion_Promedio_De_Solicitudes;
+GO
