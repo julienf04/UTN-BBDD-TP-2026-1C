@@ -183,8 +183,8 @@ VALUES
 INSERT INTO ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente (rango_etario, min_edad, max_edad)
 VALUES
 	('Menores de 25 años inclusive', 0, 25),
-	('Entre 26 y 35 años inclusive', 26, 35),
-	('Entre 36 y 50 años inclusive', 36, 50),
+	('Entre 25 y 35 años inclusive', 26, 35),
+	('Entre 35 y 50 años inclusive', 36, 50),
 	('Mayores de 50 años', 51, 255);
 
 
@@ -192,8 +192,8 @@ VALUES
 
 INSERT INTO ESE_CU_ELE.BI_Dim_Rango_Etario_Agente (rango_etario, min_edad, max_edad)
 VALUES
-	('Entre 26 y 35 años inclusive', 26, 35),
-	('Entre 36 y 50 años inclusive', 36, 50),
+	('Entre 25 y 35 años inclusive', 26, 35),
+	('Entre 35 y 50 años inclusive', 36, 50),
 	('Mayores de 50 años', 51, 255);
 
 
