@@ -784,7 +784,7 @@ WHERE Aspecto_Aspecto IS NOT NULL;
 
 --------------- Propuesta ---------------
 
-INSERT INTO ESE_CU_ELE.Propuesta (propuesta_nro, nro_solicitud_id, agente_legajo, fecha_emision, fecha_vigencia_hasta, fecha_desde, fecha_hasta, descuento, importe_total, estado)
+INSERT INTO ESE_CU_ELE.Propuesta (propuesta_nro, nro_solicitud_id, agente_legajo, fecha_emision, fecha_vigencia_hasta, fecha_desde, fecha_hasta, descuento, importe_total)
 SELECT DISTINCT 
     Propuesta_Nro_Propuesta,
     Solicitud_Nro_Solicitud,
@@ -794,7 +794,7 @@ SELECT DISTINCT
     Propuesta_Fecha_Desde,
     Propuesta_Fecha_Hasta,
     Propuesta_Descuento,
-    Propuesta_Importe_Total,
+    Propuesta_Importe_Total
 FROM gd_esquema.Maestra
 WHERE Propuesta_Nro_Propuesta IS NOT NULL;
 

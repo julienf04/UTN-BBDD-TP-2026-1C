@@ -102,7 +102,21 @@ CREATE TABLE ESE_CU_ELE.BI_Hecho_Solicitud_De_Cotizacion (
 	FOREIGN KEY(rango_etario_cliente_id) REFERENCES ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente(rango_etario_cliente_id)
 );
 
+--------------- Hecho_Encuesta ---------------
 
+CREATE TABLE ESE_CU_ELE.BI_Hecho_Encuesta (
+    tiempo_id BIGINT, -- FK
+    rango_etario_agente_id BIGINT, -- FK
+    puntaje_id BIGINT, -- FK
+    aspecto_id BIGINT, -- FK
+    aspecto_puntaje_promedio DECIMAL(18,3),
+    satisfaccion_promedio DECIMAL(18,3),
+
+    FOREIGN KEY(tiempo_id) REFERENCES ESE_CU_ELE.BI_Dim_Tiempo(tiempo_id),
+    FOREIGN KEY(rango_etario_agente_id) REFERENCES ESE_CU_ELE.BI_Dim_Rango_Etario_Agente(rango_etario_agente_id),
+    FOREIGN KEY(puntaje_id) REFERENCES ESE_CU_ELE.BI_Dim_Puntaje(puntaje_id),
+    FOREIGN KEY(aspecto_id) REFERENCES ESE_CU_ELE.BI_Dim_Aspecto(aspecto_id)
+);
 
 
 
@@ -197,7 +211,18 @@ VALUES
 	('Mayores de 50 años', 51, 255);
 
 
+--------------- Dim_Aspecto ---------------
 
+INSERT INTO ESE_CU_ELE.BI_Dim_Aspecto (aspecto)
+SELECT DISTINCT nombre
+FROM ESE_CU_ELE.Aspecto
+WHERE nombre IS NOT NULL;
+
+
+--------------- Dim_Puntaje ---------------
+
+INSERT INTO ESE_CU_ELE.BI_Dim_Puntaje (puntaje)
+VALUES (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
 
 END; -- FIN PROCEDIMIENTO migracion de las dimensiones
 GO
@@ -257,6 +282,44 @@ INNER JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente Rango_Etario_Cliente ON
 	BETWEEN Rango_Etario_Cliente.min_edad AND Rango_Etario_Cliente.max_edad
 GROUP BY Tiempo.tiempo_id, Temporada.temporada_id, Rango_Etario_Cliente.rango_etario_cliente_id;
 
+--------------- Hecho_Encuesta ---------------
+
+INSERT INTO ESE_CU_ELE.BI_Hecho_Encuesta (
+    tiempo_id, 
+    rango_etario_agente_id, 
+    puntaje_id, 
+    aspecto_id, 
+    aspecto_puntaje_promedio, 
+    satisfaccion_promedio
+)
+SELECT
+    Tiempo.tiempo_id,
+    Rango_Agente.rango_etario_agente_id,
+    Puntaje.puntaje_id,
+    Aspecto.aspecto_id,
+    AVG(CAST(Detalle.puntaje AS DECIMAL(18,3))) AS aspecto_puntaje_promedio,
+    AVG(CAST(Detalle.puntaje AS DECIMAL(18,3))) AS satisfaccion_promedio
+FROM ESE_CU_ELE.Detalle_Encuesta_Puntaje AS Detalle
+INNER JOIN ESE_CU_ELE.Encuesta Encuesta ON Encuesta.encuesta_id = Detalle.encuesta_id
+INNER JOIN ESE_CU_ELE.Venta Venta ON Venta.venta_nro = Encuesta.venta_nro
+INNER JOIN ESE_CU_ELE.Agente Agente ON Agente.agente_legajo = Venta.agente_legajo
+INNER JOIN ESE_CU_ELE.Aspecto Trans_Aspecto ON Trans_Aspecto.aspecto_id = Detalle.aspecto_id
+-- Dim_Tiempo
+INNER JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo ON (Tiempo.anio = YEAR(Encuesta.fecha) AND Tiempo.mes = MONTH(Encuesta.fecha))
+-- Dim_Aspecto
+INNER JOIN ESE_CU_ELE.BI_Dim_Aspecto Aspecto ON Aspecto.aspecto = Trans_Aspecto.nombre
+-- Dim_Puntaje
+INNER JOIN ESE_CU_ELE.BI_Dim_Puntaje Puntaje ON Puntaje.puntaje = Detalle.puntaje
+-- Dim_Rango_Etario_Agente
+INNER JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Agente Rango_Agente ON 
+    (DATEDIFF(YEAR, Agente.fecha_nacimiento, Encuesta.fecha) -
+     CASE 
+        WHEN DATEADD(YEAR, DATEDIFF(YEAR, Agente.fecha_nacimiento, Encuesta.fecha), Agente.fecha_nacimiento) > Encuesta.fecha 
+        THEN 1 
+        ELSE 0 
+     END) BETWEEN Rango_Agente.min_edad AND Rango_Agente.max_edad
+GROUP BY Tiempo.tiempo_id, Rango_Agente.rango_etario_agente_id, Puntaje.puntaje_id, Aspecto.aspecto_id;
+
 END; -- FIN PROCEDIMIENTO migracion de los hechos
 GO
 
@@ -312,7 +375,33 @@ JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo ON Tiempo.tiempo_id = Hecho_Solicitudes.tie
 GROUP BY Rango_Etario_Cliente.rango_etario, Tiempo.cuatrimestre
 GO
 
+--------------- 9. Promedio mensual de puntaje por aspecto de la encuesta ---------------
 
+CREATE VIEW ESE_CU_ELE.BI_View_Promedio_Mensual_Puntaje_Por_Aspecto
+AS
+SELECT
+    Tiempo.anio AS año,
+    Tiempo.mes,
+    Aspecto.aspecto,
+    AVG(Hecho.aspecto_puntaje_promedio) AS promedio_puntaje
+FROM ESE_CU_ELE.BI_Hecho_Encuesta AS Hecho
+JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo ON Tiempo.tiempo_id = Hecho.tiempo_id
+JOIN ESE_CU_ELE.BI_Dim_Aspecto Aspecto ON Aspecto.aspecto_id = Hecho.aspecto_id
+GROUP BY Tiempo.anio, Tiempo.mes, Aspecto.aspecto;
+GO
+
+
+--------------- 10. Promedio de satisfacción por rango etario del agente ---------------
+
+CREATE VIEW ESE_CU_ELE.BI_View_Promedio_Satisfaccion_Por_Rango_Etario_Agente
+AS
+SELECT
+    Rango_Agente.rango_etario AS rango_etario_agente,
+    AVG(Hecho.satisfaccion_promedio) AS promedio_satisfaccion
+FROM ESE_CU_ELE.BI_Hecho_Encuesta AS Hecho
+JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Agente Rango_Agente ON Rango_Agente.rango_etario_agente_id = Hecho.rango_etario_agente_id
+GROUP BY Rango_Agente.rango_etario;
+GO
 
 
 
