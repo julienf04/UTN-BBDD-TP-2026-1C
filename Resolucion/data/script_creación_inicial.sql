@@ -985,24 +985,34 @@ WHERE viejo.Vuelo_Incluye_Valija = 1
 
 --------------- Detalle_Propuesta_Vuelo ---------------
 
+-- ROW_NUMBER para garantizar exactamente 1 fila por (propuesta, vuelo),
+-- evitando duplicados cuando la Maestra repite la misma combinación con distintos estados.
 INSERT INTO ESE_CU_ELE.Detalle_Propuesta_Vuelo (propuesta_nro, vuelo_id, cantidad_pasajes, precio_unitario)
-SELECT DISTINCT
-    viejo.Propuesta_Nro_Propuesta,
-    v.vuelo_id,
-    viejo.Detalle_Propuesta_Vuelo_Cant_Pasajes,
-    viejo.Detalle_Propuesta_Vuelo_Precio
-FROM gd_esquema.Maestra viejo
-INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
-INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
-INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
-INNER JOIN ESE_CU_ELE.Vuelo v
-    ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
-    AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
-    AND v.aerolinea_id = ae.aerolinea_id
-    AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
-    AND v.horario_salida = viejo.Vuelo_Horario_Salida
-WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
-  AND viejo.Vuelo_Fecha_Salida IS NOT NULL;
+SELECT propuesta_nro, vuelo_id, cantidad_pasajes, precio_unitario
+FROM (
+    SELECT
+        viejo.Propuesta_Nro_Propuesta                    AS propuesta_nro,
+        v.vuelo_id,
+        viejo.Detalle_Propuesta_Vuelo_Cant_Pasajes       AS cantidad_pasajes,
+        viejo.Detalle_Propuesta_Vuelo_Precio             AS precio_unitario,
+        ROW_NUMBER() OVER (
+            PARTITION BY viejo.Propuesta_Nro_Propuesta, v.vuelo_id
+            ORDER BY (SELECT NULL)
+        ) AS rn
+    FROM gd_esquema.Maestra viejo
+    INNER JOIN ESE_CU_ELE.Aeropuerto ap_sal ON ap_sal.codigo = viejo.Aeropuerto_Salida_Codigo
+    INNER JOIN ESE_CU_ELE.Aeropuerto ap_lle ON ap_lle.codigo = viejo.Aeropuerto_Llegada_Codigo
+    INNER JOIN ESE_CU_ELE.Aerolinea ae ON ae.codigo = viejo.Aerolinea_Codigo
+    INNER JOIN ESE_CU_ELE.Vuelo v
+        ON v.aeropuerto_salida_id = ap_sal.aeropuerto_id
+        AND v.aeropuerto_llegada_id = ap_lle.aeropuerto_id
+        AND v.aerolinea_id = ae.aerolinea_id
+        AND v.fecha_salida = viejo.Vuelo_Fecha_Salida
+        AND v.horario_salida = viejo.Vuelo_Horario_Salida
+    WHERE viejo.Propuesta_Nro_Propuesta IS NOT NULL
+      AND viejo.Vuelo_Fecha_Salida IS NOT NULL
+) AS deduped
+WHERE rn = 1;
 
 
 --------------- Venta_Vuelo ---------------
