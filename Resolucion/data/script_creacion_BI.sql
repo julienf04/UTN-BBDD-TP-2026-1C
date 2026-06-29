@@ -102,6 +102,22 @@ CREATE TABLE ESE_CU_ELE.BI_Hecho_Solicitud_De_Cotizacion (
 	FOREIGN KEY(rango_etario_cliente_id) REFERENCES ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente(rango_etario_cliente_id)
 );
 
+--------------- Hecho_Venta ---------------
+
+CREATE TABLE ESE_CU_ELE.BI_Hecho_Venta (
+    tiempo_id BIGINT, -- FK
+    rango_etario_cliente_id BIGINT, -- FK
+    canal_de_venta_id BIGINT, -- FK
+    tipo_de_servicio_id BIGINT, -- FK
+    cantidad_ventas INT,
+    suma_importe_total DECIMAL(18,2),
+
+    FOREIGN KEY(tiempo_id) REFERENCES ESE_CU_ELE.BI_Dim_Tiempo(tiempo_id),
+    FOREIGN KEY(rango_etario_cliente_id) REFERENCES ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente(rango_etario_cliente_id),
+    FOREIGN KEY(canal_de_venta_id) REFERENCES ESE_CU_ELE.BI_Dim_Canal_De_Venta(canal_de_venta_id),
+    FOREIGN KEY(tipo_de_servicio_id) REFERENCES ESE_CU_ELE.BI_Dim_Tipo_Servicio(tipo_servicio_id)
+);
+
 --------------- Hecho_Encuesta ---------------
 
 CREATE TABLE ESE_CU_ELE.BI_Hecho_Encuesta (
@@ -224,6 +240,28 @@ WHERE nombre IS NOT NULL;
 INSERT INTO ESE_CU_ELE.BI_Dim_Puntaje (puntaje)
 VALUES (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
 
+
+--------------- Dim_Canal_De_Venta ---------------
+
+INSERT INTO ESE_CU_ELE.BI_Dim_Canal_De_Venta (canal)
+SELECT DISTINCT canal
+FROM ESE_CU_ELE.Canal_De_Venta
+WHERE canal IS NOT NULL;
+
+
+--------------- Dim_Tipo_Servicio ---------------
+
+INSERT INTO ESE_CU_ELE.BI_Dim_Tipo_Servicio (tipo_servicio)
+VALUES ('Venta Directa'), ('Propuesta a Medida');
+
+
+--------------- Dim_Estado_De_Propuesta ---------------
+
+INSERT INTO ESE_CU_ELE.BI_Dim_Estado_De_Propuesta (estado)
+SELECT DISTINCT estado
+FROM ESE_CU_ELE.Estado_Propuesta
+WHERE estado IS NOT NULL;
+
 END; -- FIN PROCEDIMIENTO migracion de las dimensiones
 GO
 
@@ -252,6 +290,45 @@ GO
 CREATE PROCEDURE ESE_CU_ELE.BI_migracion_hechos
 AS
 BEGIN
+
+--------------- Hecho_Venta ---------------
+
+-- Determina el tipo de servicio por la existencia de una propuesta vinculada a la venta.
+-- Si la venta tiene al menos una propuesta asociada en Venta_Propuesta es "Propuesta a Medida",
+-- de lo contrario es "Venta Directa".
+INSERT INTO ESE_CU_ELE.BI_Hecho_Venta (tiempo_id, rango_etario_cliente_id, canal_de_venta_id, tipo_de_servicio_id, cantidad_ventas, suma_importe_total)
+SELECT
+    Tiempo.tiempo_id,
+    Rango_Cliente.rango_etario_cliente_id,
+    Canal.canal_de_venta_id,
+    Tipo.tipo_servicio_id,
+    COUNT(Venta.venta_nro)      AS cantidad_ventas,
+    SUM(Venta.importe_total)    AS suma_importe_total
+FROM ESE_CU_ELE.Venta AS Venta
+-- Dim_Tiempo
+INNER JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo
+    ON Tiempo.anio = YEAR(Venta.fecha) AND Tiempo.mes = MONTH(Venta.fecha)
+-- Dim_Rango_Etario_Cliente
+INNER JOIN ESE_CU_ELE.Cliente Cliente ON Cliente.cliente_id = Venta.cliente_id
+INNER JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente Rango_Cliente ON
+    (DATEDIFF(YEAR, Cliente.fecha_nacimiento, Venta.fecha) -
+        CASE
+            WHEN DATEADD(YEAR, DATEDIFF(YEAR, Cliente.fecha_nacimiento, Venta.fecha), Cliente.fecha_nacimiento) > Venta.fecha
+            THEN 1 ELSE 0
+        END)
+    BETWEEN Rango_Cliente.min_edad AND Rango_Cliente.max_edad
+-- Dim_Canal_De_Venta
+INNER JOIN ESE_CU_ELE.Canal_De_Venta Canal_Trans ON Canal_Trans.canal_venta_id = Venta.canal_venta_id
+INNER JOIN ESE_CU_ELE.BI_Dim_Canal_De_Venta Canal ON Canal.canal = Canal_Trans.canal
+-- Dim_Tipo_Servicio
+INNER JOIN ESE_CU_ELE.BI_Dim_Tipo_Servicio Tipo ON Tipo.tipo_servicio =
+    CASE
+        WHEN EXISTS (
+            SELECT 1 FROM ESE_CU_ELE.Venta_Propuesta VP WHERE VP.venta_nro = Venta.venta_nro
+        ) THEN 'Propuesta a Medida'
+        ELSE 'Venta Directa'
+    END
+GROUP BY Tiempo.tiempo_id, Rango_Cliente.rango_etario_cliente_id, Canal.canal_de_venta_id, Tipo.tipo_servicio_id;
 
 --------------- Hecho_Solicitud_De_Cotizacion ---------------
 
@@ -345,6 +422,51 @@ GO
 ----------------------------------------------
 
 -- Aca va la creacion de las vistas pedidas en el TP
+
+--------------- 1. Ticket promedio ---------------
+-- Valor promedio de venta mensual según rango etario de cliente y canal de venta.
+CREATE VIEW ESE_CU_ELE.BI_View_Ticket_Promedio
+AS
+SELECT
+    Rango_Cliente.rango_etario                                          AS rango_etario_cliente,
+    Canal.canal                                                          AS canal_de_venta,
+    Tiempo.anio                                                          AS año,
+    Tiempo.mes,
+    CAST(
+        SUM(Hecho.suma_importe_total) * 1.0 / NULLIF(SUM(Hecho.cantidad_ventas), 0)
+    AS DECIMAL(18,2))                                                    AS ticket_promedio
+FROM ESE_CU_ELE.BI_Hecho_Venta AS Hecho
+JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo
+    ON Tiempo.tiempo_id = Hecho.tiempo_id
+JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente Rango_Cliente
+    ON Rango_Cliente.rango_etario_cliente_id = Hecho.rango_etario_cliente_id
+JOIN ESE_CU_ELE.BI_Dim_Canal_De_Venta Canal
+    ON Canal.canal_de_venta_id = Hecho.canal_de_venta_id
+GROUP BY Rango_Cliente.rango_etario, Canal.canal, Tiempo.anio, Tiempo.mes;
+GO
+
+
+--------------- 2. Distribución de Facturación ---------------
+-- Porcentaje de facturación por tipo de servicio, para cada cuatrimestre de cada año.
+-- La ventana OVER permite calcular el total del cuatrimestre sin una subconsulta separada.
+CREATE VIEW ESE_CU_ELE.BI_View_Distribucion_Facturacion
+AS
+SELECT
+    Tipo.tipo_servicio,
+    Tiempo.anio                                                          AS año,
+    Tiempo.cuatrimestre,
+    CAST(
+        SUM(Hecho.suma_importe_total) * 100.0 /
+        NULLIF(SUM(SUM(Hecho.suma_importe_total)) OVER (PARTITION BY Tiempo.anio, Tiempo.cuatrimestre), 0)
+    AS DECIMAL(18,2))                                                    AS porcentaje_facturacion
+FROM ESE_CU_ELE.BI_Hecho_Venta AS Hecho
+JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo
+    ON Tiempo.tiempo_id = Hecho.tiempo_id
+JOIN ESE_CU_ELE.BI_Dim_Tipo_Servicio Tipo
+    ON Tipo.tipo_servicio_id = Hecho.tipo_de_servicio_id
+GROUP BY Tipo.tipo_servicio, Tiempo.anio, Tiempo.cuatrimestre;
+GO
+
 
 --------------- 3. Ranking de solicitudes por temporadas ---------------
 CREATE VIEW ESE_CU_ELE.BI_View_Ranking_De_Solicitudes_Por_Temporada

@@ -9,7 +9,9 @@ GO
 
 -- Borro las tablas desde las hojas hasta las raices (primero los Hechos y despues las Dimensiones)
 -- Hechos
+DROP TABLE ESE_CU_ELE.BI_Hecho_Venta;
 DROP TABLE ESE_CU_ELE.BI_Hecho_Solicitud_De_Cotizacion;
+DROP TABLE ESE_CU_ELE.BI_Hecho_Encuesta;
 --Dimensiones
 DROP TABLE ESE_CU_ELE.BI_Dim_Tiempo;
 DROP TABLE ESE_CU_ELE.BI_Dim_Temporada;
@@ -30,7 +32,15 @@ GO
 
 -- Borro las vistas
 
+DROP VIEW ESE_CU_ELE.BI_View_Ticket_Promedio;
+GO
+DROP VIEW ESE_CU_ELE.BI_View_Distribucion_Facturacion;
+GO
 DROP VIEW ESE_CU_ELE.BI_View_Ranking_De_Solicitudes_Por_Temporada;
 GO
 DROP VIEW ESE_CU_ELE.BI_View_Anticipacion_Promedio_De_Solicitudes;
+GO
+DROP VIEW ESE_CU_ELE.BI_View_Promedio_Mensual_Puntaje_Por_Aspecto;
+GO
+DROP VIEW ESE_CU_ELE.BI_View_Promedio_Satisfaccion_Por_Rango_Etario_Agente;
 GO
