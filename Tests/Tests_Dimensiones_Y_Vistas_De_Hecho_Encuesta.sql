@@ -220,8 +220,8 @@ SELECT
     R.rango_etario_agente_id,
     P.puntaje_id,
     A.aspecto_id,
-    CAST(AVG(CAST(EB.puntaje AS DECIMAL(18,3))) AS DECIMAL(18,3)) AS aspecto_puntaje_promedio,
-    CAST(AVG(CAST(EB.puntaje AS DECIMAL(18,3))) AS DECIMAL(18,3)) AS satisfaccion_promedio
+    COUNT(EB.encuesta_id) AS cantidad_encuestas,
+    SUM(EB.puntaje) AS suma_puntaje
 INTO #HechoEncuestaEsperado
 FROM #EncuestaBase AS EB
 INNER JOIN ESE_CU_ELE.BI_Dim_Tiempo AS T
@@ -244,8 +244,8 @@ SELECT
     rango_etario_agente_id,
     puntaje_id,
     aspecto_id,
-    CAST(aspecto_puntaje_promedio AS DECIMAL(18,3)) AS aspecto_puntaje_promedio,
-    CAST(satisfaccion_promedio AS DECIMAL(18,3)) AS satisfaccion_promedio
+    cantidad_encuestas,
+    suma_puntaje
 INTO #HechoEncuestaActual
 FROM ESE_CU_ELE.BI_Hecho_Encuesta;
 
@@ -301,8 +301,8 @@ IF EXISTS
        OR rango_etario_agente_id IS NULL
        OR puntaje_id IS NULL
        OR aspecto_id IS NULL
-       OR aspecto_puntaje_promedio IS NULL
-       OR satisfaccion_promedio IS NULL
+       OR cantidad_encuestas IS NULL
+       OR suma_puntaje IS NULL
 )
 BEGIN
     PRINT '❌ TEST 3.4 FAILED: El hecho tiene nulos en claves o métricas.';
@@ -319,12 +319,11 @@ PRINT 'TEST 4 - Vista 9 (Promedio Mensual de Puntaje por Aspecto)';
 DROP TABLE IF EXISTS #Vista9Esperada;
 DROP TABLE IF EXISTS #Vista9Actual;
 
--- La expectativa se construye agrupando sobre la tabla de Hecho para replicar el cálculo de la vista
 SELECT
     T.anio AS año,
     T.mes,
     A.aspecto,
-    CAST(AVG(HE.aspecto_puntaje_promedio) AS DECIMAL(18,3)) AS promedio_puntaje
+    CAST(SUM(HE.suma_puntaje) * 1.0 / SUM(HE.cantidad_encuestas) AS DECIMAL(18,2)) AS promedio_puntaje
 INTO #Vista9Esperada
 FROM #HechoEncuestaEsperado AS HE
 INNER JOIN ESE_CU_ELE.BI_Dim_Tiempo AS T
@@ -357,12 +356,12 @@ BEGIN
 END
 ELSE
 BEGIN
-    CREATE TABLE #Vista9Actual
+CREATE TABLE #Vista9Actual
     (
         año INT,
         mes TINYINT,
         aspecto NVARCHAR(255),
-        promedio_puntaje DECIMAL(18,3)
+        promedio_puntaje DECIMAL(18,2)
     );
 
     DECLARE @sqlVista9 NVARCHAR(MAX) =
@@ -371,9 +370,8 @@ BEGIN
               ' + QUOTENAME(@colAnioVista9) + N' AS año,
               mes,
               aspecto,
-              CAST(promedio_puntaje AS DECIMAL(18,3))
+              CAST(promedio_puntaje AS DECIMAL(18,2))
           FROM ESE_CU_ELE.BI_View_Promedio_Mensual_Puntaje_Por_Aspecto;';
-
     EXEC sys.sp_executesql @sqlVista9;
 
     SELECT @cnt_esperado = COUNT(*) FROM #Vista9Esperada;
@@ -421,7 +419,7 @@ DROP TABLE IF EXISTS #Vista10Actual;
 
 SELECT
     R.rango_etario AS rango_etario_agente,
-    CAST(AVG(HE.satisfaccion_promedio) AS DECIMAL(18,3)) AS promedio_satisfaccion
+    CAST(SUM(HE.suma_puntaje) * 1.0 / SUM(HE.cantidad_encuestas) AS DECIMAL(18,2)) AS promedio_satisfaccion
 INTO #Vista10Esperada
 FROM #HechoEncuestaEsperado AS HE
 INNER JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Agente AS R
@@ -430,7 +428,7 @@ GROUP BY R.rango_etario;
 
 SELECT
     rango_etario_agente,
-    CAST(promedio_satisfaccion AS DECIMAL(18,3)) AS promedio_satisfaccion
+    CAST(promedio_satisfaccion AS DECIMAL(18,2)) AS promedio_satisfaccion
 INTO #Vista10Actual
 FROM ESE_CU_ELE.BI_View_Promedio_Satisfaccion_Por_Rango_Etario_Agente;
 

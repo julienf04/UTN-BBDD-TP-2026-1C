@@ -109,8 +109,8 @@ CREATE TABLE ESE_CU_ELE.BI_Hecho_Encuesta (
     rango_etario_agente_id BIGINT, -- FK
     puntaje_id BIGINT, -- FK
     aspecto_id BIGINT, -- FK
-    aspecto_puntaje_promedio DECIMAL(18,3),
-    satisfaccion_promedio DECIMAL(18,3),
+    cantidad_encuestas INT,
+    suma_puntaje INT,
 
     FOREIGN KEY(tiempo_id) REFERENCES ESE_CU_ELE.BI_Dim_Tiempo(tiempo_id),
     FOREIGN KEY(rango_etario_agente_id) REFERENCES ESE_CU_ELE.BI_Dim_Rango_Etario_Agente(rango_etario_agente_id),
@@ -289,16 +289,16 @@ INSERT INTO ESE_CU_ELE.BI_Hecho_Encuesta (
     rango_etario_agente_id, 
     puntaje_id, 
     aspecto_id, 
-    aspecto_puntaje_promedio, 
-    satisfaccion_promedio
+    cantidad_encuestas, 
+    suma_puntaje
 )
 SELECT
     Tiempo.tiempo_id,
     Rango_Agente.rango_etario_agente_id,
     Puntaje.puntaje_id,
     Aspecto.aspecto_id,
-    AVG(CAST(Detalle.puntaje AS DECIMAL(18,3))) AS aspecto_puntaje_promedio,
-    AVG(CAST(Detalle.puntaje AS DECIMAL(18,3))) AS satisfaccion_promedio
+    COUNT(Detalle.encuesta_id) AS cantidad_encuestas,
+    SUM(Detalle.puntaje) AS suma_puntaje
 FROM ESE_CU_ELE.Detalle_Encuesta_Puntaje AS Detalle
 INNER JOIN ESE_CU_ELE.Encuesta Encuesta ON Encuesta.encuesta_id = Detalle.encuesta_id
 INNER JOIN ESE_CU_ELE.Venta Venta ON Venta.venta_nro = Encuesta.venta_nro
@@ -383,7 +383,7 @@ SELECT
     Tiempo.anio AS año,
     Tiempo.mes,
     Aspecto.aspecto,
-    AVG(Hecho.aspecto_puntaje_promedio) AS promedio_puntaje
+    CAST(SUM(Hecho.suma_puntaje) * 1.0 / SUM(Hecho.cantidad_encuestas) AS DECIMAL(18,2)) AS promedio_puntaje
 FROM ESE_CU_ELE.BI_Hecho_Encuesta AS Hecho
 JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo ON Tiempo.tiempo_id = Hecho.tiempo_id
 JOIN ESE_CU_ELE.BI_Dim_Aspecto Aspecto ON Aspecto.aspecto_id = Hecho.aspecto_id
@@ -397,12 +397,11 @@ CREATE VIEW ESE_CU_ELE.BI_View_Promedio_Satisfaccion_Por_Rango_Etario_Agente
 AS
 SELECT
     Rango_Agente.rango_etario AS rango_etario_agente,
-    AVG(Hecho.satisfaccion_promedio) AS promedio_satisfaccion
+    CAST(SUM(Hecho.suma_puntaje) * 1.0 / SUM(Hecho.cantidad_encuestas) AS DECIMAL(18,2)) AS promedio_satisfaccion
 FROM ESE_CU_ELE.BI_Hecho_Encuesta AS Hecho
 JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Agente Rango_Agente ON Rango_Agente.rango_etario_agente_id = Hecho.rango_etario_agente_id
 GROUP BY Rango_Agente.rango_etario;
 GO
-
 
 
 PRINT(N'Vistas creadas')
