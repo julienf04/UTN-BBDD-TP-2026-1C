@@ -142,6 +142,13 @@ CREATE TABLE ESE_CU_ELE.Propuesta (
     fecha_hasta DATE,
     descuento decimal(18,2),
     importe_total decimal(18,2),
+);
+
+--------------- Estado_Propuesta ---------------
+
+CREATE TABLE ESE_CU_ELE.Estado_Propuesta (
+    estado_propuesta_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    propuesta_nro BIGINT, -- FK hacia Propuesta
     estado nvarchar(255)
 );
 
@@ -415,6 +422,11 @@ ADD CONSTRAINT FK_DetalleSolicitudCotizacion_Solicitud_Cotizacion FOREIGN KEY(so
 ALTER TABLE ESE_CU_ELE.Propuesta
 ADD CONSTRAINT FK_Propuesta_Solicitud FOREIGN KEY(nro_solicitud_id) REFERENCES ESE_CU_ELE.Solicitud_De_Cotizacion(nro_solicitud_id),
     CONSTRAINT FK_Propuesta_Agente FOREIGN KEY(agente_legajo) REFERENCES ESE_CU_ELE.Agente(agente_legajo);
+
+--------------- Estado_Propuesta ---------------
+
+ALTER TABLE ESE_CU_ELE.Estado_Propuesta
+ADD CONSTRAINT FK_EstadoPropuesta_Propuesta FOREIGN KEY(propuesta_nro) REFERENCES ESE_CU_ELE.Propuesta(propuesta_nro);
 
 --------------- Venta ---------------
 
@@ -783,10 +795,18 @@ SELECT DISTINCT
     Propuesta_Fecha_Hasta,
     Propuesta_Descuento,
     Propuesta_Importe_Total,
-    Propuesta_Estado
 FROM gd_esquema.Maestra
 WHERE Propuesta_Nro_Propuesta IS NOT NULL;
 
+--------------- Estado_Propuesta ---------------
+
+INSERT INTO ESE_CU_ELE.Estado_Propuesta (propuesta_nro, estado)
+SELECT DISTINCT 
+    Propuesta_Nro_Propuesta,
+    Propuesta_Estado
+FROM gd_esquema.Maestra
+WHERE Propuesta_Nro_Propuesta IS NOT NULL 
+  AND Propuesta_Estado IS NOT NULL;
 
 --------------- Venta ---------------
 
@@ -1285,6 +1305,10 @@ CREATE INDEX index_detallesolicitudcotizacion_ciudadid ON ESE_CU_ELE.Detalle_Sol
 
 CREATE INDEX index_propuesta_solicitudid ON ESE_CU_ELE.Propuesta(nro_solicitud_id);
 CREATE INDEX index_propuesta_agentelegajo ON ESE_CU_ELE.Propuesta(agente_legajo);
+
+--------------- Estado_Propuesta ---------------
+
+CREATE INDEX index_estadopropuesta_propuestanro ON ESE_CU_ELE.Estado_Propuesta(propuesta_nro);
 
 --------------- Venta ---------------
 
