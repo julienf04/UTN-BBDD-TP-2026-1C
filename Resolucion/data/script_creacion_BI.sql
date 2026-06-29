@@ -430,7 +430,7 @@ AS
 SELECT
     Rango_Cliente.rango_etario                                          AS rango_etario_cliente,
     Canal.canal                                                          AS canal_de_venta,
-    Tiempo.anio                                                          AS año,
+    Tiempo.anio                                                          AS anio,
     Tiempo.mes,
     CAST(
         SUM(Hecho.suma_importe_total) * 1.0 / NULLIF(SUM(Hecho.cantidad_ventas), 0)
@@ -453,7 +453,7 @@ CREATE VIEW ESE_CU_ELE.BI_View_Distribucion_Facturacion
 AS
 SELECT
     Tipo.tipo_servicio,
-    Tiempo.anio                                                          AS año,
+    Tiempo.anio                                                          AS anio,
     Tiempo.cuatrimestre,
     CAST(
         SUM(Hecho.suma_importe_total) * 100.0 /
@@ -473,7 +473,7 @@ CREATE VIEW ESE_CU_ELE.BI_View_Ranking_De_Solicitudes_Por_Temporada
 AS
 SELECT
 	Temporada.temporada,
-	Tiempo.anio AS año,
+	Tiempo.anio AS anio,
 	Rango_Etario_Cliente.rango_etario,
 	SUM(Hecho_Solicitudes.cantidad_solicitudes) AS cantidad_solicitudes
 FROM ESE_CU_ELE.BI_Hecho_Solicitud_De_Cotizacion AS Hecho_Solicitudes
@@ -502,7 +502,7 @@ GO
 CREATE VIEW ESE_CU_ELE.BI_View_Promedio_Mensual_Puntaje_Por_Aspecto
 AS
 SELECT
-    Tiempo.anio AS año,
+    Tiempo.anio AS anio,
     Tiempo.mes,
     Aspecto.aspecto,
     AVG(Hecho.aspecto_puntaje_promedio) AS promedio_puntaje
