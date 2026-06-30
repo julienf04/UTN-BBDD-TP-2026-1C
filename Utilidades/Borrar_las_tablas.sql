@@ -45,8 +45,8 @@ DROP INDEX index_venta_clienteid ON ESE_CU_ELE.Venta;
 DROP INDEX index_venta_canalventaid ON ESE_CU_ELE.Venta;
 DROP INDEX index_venta_mediodepagoid ON ESE_CU_ELE.Venta;
 DROP INDEX index_ventapropuesta_ventanro ON ESE_CU_ELE.Venta_Propuesta;
-DROP INDEX index_encuesta_ventanro ON ESE_CU_ELE.Encuesta;
-DROP INDEX index_encuesta_propuestanro ON ESE_CU_ELE.Encuesta;
+DROP INDEX index_encuesta_clienteid ON ESE_CU_ELE.Encuesta;
+DROP INDEX index_encuesta_agentelegajo ON ESE_CU_ELE.Encuesta;
 DROP INDEX index_detalleencuestapuntaje_encuestaid ON ESE_CU_ELE.Detalle_Encuesta_Puntaje;
 
 
@@ -93,8 +93,8 @@ ALTER TABLE ESE_CU_ELE.Venta DROP CONSTRAINT FK_Venta_Canal;
 ALTER TABLE ESE_CU_ELE.Venta DROP CONSTRAINT FK_Venta_MedioPago;
 ALTER TABLE ESE_CU_ELE.Venta_Propuesta DROP CONSTRAINT FK_VentaPropuesta_Propuesta;
 ALTER TABLE ESE_CU_ELE.Venta_Propuesta DROP CONSTRAINT FK_VentaPropuesta_Venta;
-ALTER TABLE ESE_CU_ELE.Encuesta DROP CONSTRAINT FK_Encuesta_Venta;
-ALTER TABLE ESE_CU_ELE.Encuesta DROP CONSTRAINT FK_Encuesta_Propuesta;
+ALTER TABLE ESE_CU_ELE.Encuesta DROP CONSTRAINT FK_Encuesta_Cliente;
+ALTER TABLE ESE_CU_ELE.Encuesta DROP CONSTRAINT FK_Encuesta_Agente;
 ALTER TABLE ESE_CU_ELE.Detalle_Encuesta_Puntaje DROP CONSTRAINT FK_DetalleEncuesta_Aspecto;
 ALTER TABLE ESE_CU_ELE.Detalle_Encuesta_Puntaje DROP CONSTRAINT FK_DetalleEncuesta_Encuesta;
 GO

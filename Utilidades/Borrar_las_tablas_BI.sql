@@ -12,6 +12,7 @@ GO
 DROP TABLE ESE_CU_ELE.BI_Hecho_Venta;
 DROP TABLE ESE_CU_ELE.BI_Hecho_Solicitud_De_Cotizacion;
 DROP TABLE ESE_CU_ELE.BI_Hecho_Encuesta;
+DROP TABLE ESE_CU_ELE.BI_Hecho_Propuesta;
 --Dimensiones
 DROP TABLE ESE_CU_ELE.BI_Dim_Tiempo;
 DROP TABLE ESE_CU_ELE.BI_Dim_Temporada;
@@ -25,9 +26,9 @@ DROP TABLE ESE_CU_ELE.BI_Dim_Puntaje;
 
 
 -- Borro las stored procedures de la migracion
-DROP PROCEDURE ESE_CU_ELE.BI_migracion_hechos;
+DROP PROCEDURE ESE_CU_ELE.BI_carga_hechos;
 GO
-DROP PROCEDURE ESE_CU_ELE.BI_migracion_dimensiones;
+DROP PROCEDURE ESE_CU_ELE.BI_carga_dimensiones;
 GO
 
 -- Borro las vistas
@@ -39,6 +40,14 @@ GO
 DROP VIEW ESE_CU_ELE.BI_View_Ranking_De_Solicitudes_Por_Temporada;
 GO
 DROP VIEW ESE_CU_ELE.BI_View_Anticipacion_Promedio_De_Solicitudes;
+GO
+DROP VIEW ESE_CU_ELE.BI_View_Tasa_De_Aceptacion_De_Propuestas;
+GO
+DROP VIEW ESE_CU_ELE.BI_View_Cotizacion_Promedio_Por_Temporada;
+GO
+DROP VIEW ESE_CU_ELE.BI_View_Tiempo_Promedio_De_Respuesta;
+GO
+DROP VIEW ESE_CU_ELE.BI_View_Desvio_De_Presupuesto;
 GO
 DROP VIEW ESE_CU_ELE.BI_View_Promedio_Mensual_Puntaje_Por_Aspecto;
 GO

@@ -2,8 +2,6 @@
 -- CREACION DE LAS TABLAS DE DIMENSIONES
 ----------------------------------------------
 
--- Aca va la creacion de todas las tablas de dimensiones
-
 --------------- Dim_Tiempo ---------------
 
 CREATE TABLE ESE_CU_ELE.BI_Dim_Tiempo (
@@ -84,9 +82,6 @@ GO
 ----------------------------------------------
 -- CREACION DE LAS TABLAS DE HECHOS
 ----------------------------------------------
-
--- Aca va la creacion de todas las tablas de hechos
-
 
 --------------- Hecho_Solicitud_De_Cotizacion ---------------
 
@@ -174,9 +169,7 @@ GO
 -- MIGRACION A LAS TABLAS DE DIMENSIONES
 ----------------------------------------------
 
--- Aca va la migracion de las tablas del modelo transaccional a las tablas de dimensiones del modelo BI
-
-CREATE PROCEDURE ESE_CU_ELE.BI_migracion_dimensiones
+CREATE PROCEDURE ESE_CU_ELE.BI_carga_dimensiones
 AS
 BEGIN
 
@@ -287,7 +280,7 @@ SELECT DISTINCT estado
 FROM ESE_CU_ELE.Estado_Propuesta
 WHERE estado IS NOT NULL;
 
-END; -- FIN PROCEDIMIENTO migracion de las dimensiones
+END; -- FIN PROCEDIMIENTO carga de las dimensiones
 GO
 
 
@@ -295,13 +288,13 @@ GO
 
 BEGIN TRY
     BEGIN TRANSACTION
-    EXECUTE ESE_CU_ELE.BI_migracion_dimensiones;
-    PRINT(N'Migracion a las tablas de dimensiones hecha');
+    EXECUTE ESE_CU_ELE.BI_carga_dimensiones;
+    PRINT(N'Carga de datos a las tablas de dimensiones hecha');
     COMMIT;
 END TRY
 BEGIN CATCH
     ROLLBACK;
-    PRINT(N'Se hizo un Rollback en la migracion de las tablas de dimensiones debido al siguiente error: ' + ERROR_MESSAGE());
+    PRINT(N'Se hizo un Rollback en la carga de datos a las tablas de dimensiones debido al siguiente error: ' + ERROR_MESSAGE());
 END CATCH;
 GO
 
@@ -310,9 +303,7 @@ GO
 -- MIGRACION A LAS TABLAS DE HECHOS Y GENERACION DE METRICAS
 ----------------------------------------------
 
--- Aca va la migracion de las tablas del modelo transaccional a las tablas de dimensiones del modelo BI y la generacion de las metricas
-
-CREATE PROCEDURE ESE_CU_ELE.BI_migracion_hechos
+CREATE PROCEDURE ESE_CU_ELE.BI_carga_hechos
 AS
 BEGIN
 
@@ -355,6 +346,7 @@ INNER JOIN ESE_CU_ELE.BI_Dim_Tipo_Servicio Tipo ON Tipo.tipo_servicio =
     END
 GROUP BY Tiempo.tiempo_id, Rango_Cliente.rango_etario_cliente_id, Canal.canal_de_venta_id, Tipo.tipo_servicio_id;
 
+
 --------------- Hecho_Solicitud_De_Cotizacion ---------------
 
 INSERT INTO ESE_CU_ELE.BI_Hecho_Solicitud_De_Cotizacion (tiempo_id, temporada_id, rango_etario_cliente_id, cantidad_solicitudes, suma_dias_anticipacion)
@@ -384,6 +376,7 @@ INNER JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente Rango_Etario_Cliente ON
 	BETWEEN Rango_Etario_Cliente.min_edad AND Rango_Etario_Cliente.max_edad
 GROUP BY Tiempo.tiempo_id, Temporada.temporada_id, Rango_Etario_Cliente.rango_etario_cliente_id;
 
+
 --------------- Hecho_Encuesta ---------------
 
 INSERT INTO ESE_CU_ELE.BI_Hecho_Encuesta (
@@ -403,8 +396,7 @@ SELECT
     SUM(Detalle.puntaje) AS suma_puntaje
 FROM ESE_CU_ELE.Detalle_Encuesta_Puntaje AS Detalle
 INNER JOIN ESE_CU_ELE.Encuesta Encuesta ON Encuesta.encuesta_id = Detalle.encuesta_id
-INNER JOIN ESE_CU_ELE.Venta Venta ON Venta.venta_nro = Encuesta.venta_nro
-INNER JOIN ESE_CU_ELE.Agente Agente ON Agente.agente_legajo = Venta.agente_legajo
+INNER JOIN ESE_CU_ELE.Agente Agente ON Agente.agente_legajo = Encuesta.agente_legajo
 INNER JOIN ESE_CU_ELE.Aspecto Trans_Aspecto ON Trans_Aspecto.aspecto_id = Detalle.aspecto_id
 -- Dim_Tiempo
 INNER JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo ON (Tiempo.anio = YEAR(Encuesta.fecha) AND Tiempo.mes = MONTH(Encuesta.fecha))
@@ -518,7 +510,7 @@ Temporada.temporada_id,
 Rango_Agente.rango_etario_agente_id,
 EstadoBI.estado_de_propuesta_id;
 
-END; -- FIN PROCEDIMIENTO migracion de los hechos
+END; -- FIN PROCEDIMIENTO carga de los hechos
 GO
 
 
@@ -526,13 +518,13 @@ GO
 
 BEGIN TRY
     BEGIN TRANSACTION
-    EXECUTE ESE_CU_ELE.BI_migracion_hechos;
-    PRINT(N'Migracion a las tablas de hechos hecha');
+    EXECUTE ESE_CU_ELE.BI_carga_hechos;
+    PRINT(N'Carga de datos a las tablas de hechos hecha');
     COMMIT;
 END TRY
 BEGIN CATCH
     ROLLBACK;
-    PRINT(N'Se hizo un Rollback en la migracion de las tablas de hechos debido al siguiente error: ' + ERROR_MESSAGE());
+    PRINT(N'Se hizo un Rollback en la carga de datos a las tablas de hechos debido al siguiente error: ' + ERROR_MESSAGE());
 END CATCH;
 GO
 
@@ -542,10 +534,8 @@ GO
 -- CREACION DE LAS VISTAS
 ----------------------------------------------
 
--- Aca va la creacion de las vistas pedidas en el TP
-
 --------------- 1. Ticket promedio ---------------
--- Valor promedio de venta mensual según rango etario de cliente y canal de venta.
+
 CREATE VIEW ESE_CU_ELE.BI_View_Ticket_Promedio
 AS
 SELECT
@@ -568,8 +558,7 @@ GO
 
 
 --------------- 2. Distribución de Facturación ---------------
--- Porcentaje de facturación por tipo de servicio, para cada cuatrimestre de cada año.
--- La ventana OVER permite calcular el total del cuatrimestre sin una subconsulta separada.
+
 CREATE VIEW ESE_CU_ELE.BI_View_Distribucion_Facturacion
 AS
 SELECT
@@ -590,6 +579,7 @@ GO
 
 
 --------------- 3. Ranking de solicitudes por temporadas ---------------
+
 CREATE VIEW ESE_CU_ELE.BI_View_Ranking_De_Solicitudes_Por_Temporada
 AS
 SELECT
@@ -606,6 +596,7 @@ GO
 
 
 --------------- 4. Anticipación promedio de solicitudes ---------------
+
 CREATE VIEW ESE_CU_ELE.BI_View_Anticipacion_Promedio_De_Solicitudes
 AS
 SELECT
@@ -620,6 +611,7 @@ GO
 
 
 --------------- 5. Tasa de aceptación de propuestas ---------------
+
 CREATE VIEW ESE_CU_ELE.BI_View_Tasa_De_Aceptacion_De_Propuestas
 AS
 SELECT
@@ -635,6 +627,7 @@ GO
 
 
 --------------- 6. Cotización promedio por temporada ---------------
+
 CREATE VIEW ESE_CU_ELE.BI_View_Cotizacion_Promedio_Por_Temporada
 AS
 SELECT
@@ -654,6 +647,7 @@ GO
 
 
 --------------- 7. Tiempo promedio de respuesta ---------------
+
 CREATE VIEW ESE_CU_ELE.BI_View_Tiempo_Promedio_De_Respuesta
 AS
 SELECT
@@ -675,6 +669,7 @@ GO
 
 
 --------------- 8. Desvío de presupuesto ---------------
+
 CREATE VIEW ESE_CU_ELE.BI_View_Desvio_De_Presupuesto
 AS
 SELECT
@@ -711,6 +706,7 @@ FROM ESE_CU_ELE.BI_Hecho_Encuesta AS Hecho
 JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Agente Rango_Agente ON Rango_Agente.rango_etario_agente_id = Hecho.rango_etario_agente_id
 GROUP BY Rango_Agente.rango_etario;
 GO
+
 
 
 PRINT(N'Vistas creadas')

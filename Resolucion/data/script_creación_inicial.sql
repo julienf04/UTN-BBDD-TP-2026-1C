@@ -178,8 +178,8 @@ CREATE TABLE ESE_CU_ELE.Venta_Propuesta (
 
 CREATE TABLE ESE_CU_ELE.Encuesta (
     encuesta_id BIGINT PRIMARY KEY, -- Guardamos el código original directo de la Maestra
-    venta_nro BIGINT,     -- FK hacia Venta
-    propuesta_nro BIGINT, -- FK hacia Propuesta
+    cliente_id BIGINT,     -- FK hacia Cliente
+    agente_legajo BIGINT, -- FK hacia Agente
     fecha DATE,
     comentario nvarchar(max)
 );
@@ -446,8 +446,8 @@ ADD CONSTRAINT FK_VentaPropuesta_Propuesta FOREIGN KEY(propuesta_nro) REFERENCES
 --------------- Encuesta ---------------
 
 ALTER TABLE ESE_CU_ELE.Encuesta
-ADD CONSTRAINT FK_Encuesta_Venta FOREIGN KEY(venta_nro) REFERENCES ESE_CU_ELE.Venta(venta_nro),
-    CONSTRAINT FK_Encuesta_Propuesta FOREIGN KEY(propuesta_nro) REFERENCES ESE_CU_ELE.Propuesta(propuesta_nro);
+ADD CONSTRAINT FK_Encuesta_Agente FOREIGN KEY(agente_legajo) REFERENCES ESE_CU_ELE.Agente(agente_legajo),
+    CONSTRAINT FK_Encuesta_Cliente FOREIGN KEY(cliente_id) REFERENCES ESE_CU_ELE.Cliente(cliente_id);
 
 --------------- Detalle_Encuesta_Puntaje ---------------
 
@@ -846,14 +846,20 @@ WHERE Venta_Nro_Venta IS NOT NULL
 
 --------------- Encuesta ---------------
 
-INSERT INTO ESE_CU_ELE.Encuesta (encuesta_id, venta_nro, propuesta_nro, fecha, comentario)
+INSERT INTO ESE_CU_ELE.Encuesta (encuesta_id, cliente_id, agente_legajo, fecha, comentario)
 SELECT DISTINCT 
-    Encuesta_Codigo_Encuesta,
-    Venta_Nro_Venta,       
-    Propuesta_Nro_Propuesta, 
-    Encuesta_Fecha_Encuesta,
-    Encuesta_Comentarios
-FROM gd_esquema.Maestra
+    viejo.Encuesta_Codigo_Encuesta,
+    Cliente.cliente_id,       
+    Agente.agente_legajo,
+    viejo.Encuesta_Fecha_Encuesta,
+    viejo.Encuesta_Comentarios
+FROM gd_esquema.Maestra viejo
+INNER JOIN Cliente ON Cliente.dni = viejo.Cliente_Dni -- Hay personas con el mismo dni, asi que compruebo no solo por el dni, sino tambien por el nombre y apellido
+       AND Cliente.nombre = viejo.Cliente_Nombre
+       AND Cliente.apellido = viejo.Cliente_Apellido
+INNER JOIN Agente ON Agente.dni = viejo.Agente_Dni -- Hay personas con el mismo dni, asi que compruebo no solo por el dni, sino tambien por el nombre y apellido
+       AND Agente.nombre = viejo.Agente_Nombre
+       AND Agente.apellido = viejo.Agente_Apellido
 WHERE Encuesta_Codigo_Encuesta IS NOT NULL;
 
 
@@ -1334,8 +1340,8 @@ CREATE INDEX index_ventapropuesta_ventanro ON ESE_CU_ELE.Venta_Propuesta(venta_n
 
 --------------- Encuesta ---------------
 
-CREATE INDEX index_encuesta_ventanro ON ESE_CU_ELE.Encuesta(venta_nro);
-CREATE INDEX index_encuesta_propuestanro ON ESE_CU_ELE.Encuesta(propuesta_nro);
+CREATE INDEX index_encuesta_clienteid ON ESE_CU_ELE.Encuesta(cliente_id);
+CREATE INDEX index_encuesta_agentelegajo ON ESE_CU_ELE.Encuesta(agente_legajo);
 
 --------------- Detalle_Encuesta_Puntaje ---------------
 
