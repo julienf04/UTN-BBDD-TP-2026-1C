@@ -134,10 +134,35 @@ CREATE TABLE ESE_CU_ELE.BI_Hecho_Encuesta (
     FOREIGN KEY(aspecto_id) REFERENCES ESE_CU_ELE.BI_Dim_Aspecto(aspecto_id)
 );
 
+--------------- Hecho_Propuesta ---------------
 
+CREATE TABLE ESE_CU_ELE.BI_Hecho_Propuesta (
 
+    tiempo_id BIGINT, -- FK
+    temporada_id BIGINT, -- FK
+    rango_etario_agente_id BIGINT, -- FK
+    estado_propuesta BIGINT, -- FK
 
+    cantidad_propuestas INT,
+    cantidad_propuestas_aceptadas INT,
+    suma_importe_total DECIMAL(18,2),
+    suma_dias_en_responder INT,
+    cantidad_presupuestos INT,
+    suma_desvio_presupuestos DECIMAL(18,2),
 
+    FOREIGN KEY (tiempo_id)
+        REFERENCES ESE_CU_ELE.BI_Dim_Tiempo(tiempo_id),
+
+    FOREIGN KEY (temporada_id)
+        REFERENCES ESE_CU_ELE.BI_Dim_Temporada(temporada_id),
+
+    FOREIGN KEY (rango_etario_agente_id)
+        REFERENCES ESE_CU_ELE.BI_Dim_Rango_Etario_Agente(rango_etario_agente_id),
+
+    FOREIGN KEY (estado_propuesta)
+        REFERENCES ESE_CU_ELE.BI_Dim_Estado_De_Propuesta(estado_de_propuesta_id)
+
+);
 
 
 PRINT(N'Creadas las tablas de hechos');
@@ -397,6 +422,102 @@ INNER JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Agente Rango_Agente ON
      END) BETWEEN Rango_Agente.min_edad AND Rango_Agente.max_edad
 GROUP BY Tiempo.tiempo_id, Rango_Agente.rango_etario_agente_id, Puntaje.puntaje_id, Aspecto.aspecto_id;
 
+
+--------------- Hecho_Propuesta ---------------
+
+INSERT INTO ESE_CU_ELE.BI_Hecho_Propuesta (
+    tiempo_id,
+    temporada_id,
+    rango_etario_agente_id,
+    estado_propuesta,
+    cantidad_propuestas,
+    cantidad_propuestas_aceptadas,
+    suma_importe_total,
+    suma_dias_en_responder,
+    cantidad_presupuestos,
+    suma_desvio_presupuestos
+)
+SELECT
+    Tiempo.tiempo_id,
+    Temporada.temporada_id,
+    Rango_Agente.rango_etario_agente_id,
+    EstadoBI.estado_de_propuesta_id,
+
+    COUNT(*) AS cantidad_propuestas,
+
+    SUM(
+        CASE
+            WHEN Estado.estado = 'Aceptada'
+            THEN 1
+            ELSE 0
+        END
+    ) AS cantidad_propuestas_aceptadas,
+
+    SUM(P.importe_total) AS suma_importe_total,
+
+    SUM(
+        DATEDIFF(
+            DAY,
+            Solicitud.fecha_solicitud,
+            P.fecha_emision
+        )
+    ) AS suma_dias_en_responder,
+
+    COUNT(*) AS cantidad_presupuestos,
+
+    SUM(
+        P.importe_total - Solicitud.presupuesto_estimado
+    ) AS suma_desvio_presupuestos
+
+FROM ESE_CU_ELE.Propuesta P
+
+INNER JOIN ESE_CU_ELE.Solicitud_De_Cotizacion Solicitud
+    ON Solicitud.nro_solicitud_id = P.nro_solicitud_id
+
+INNER JOIN ESE_CU_ELE.Agente Agente
+    ON Agente.agente_legajo = P.agente_legajo
+
+INNER JOIN ESE_CU_ELE.Estado_Propuesta Estado
+    ON Estado.propuesta_nro = P.propuesta_nro
+
+-- Dim_Tiempo
+INNER JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo
+ON Tiempo.anio = YEAR(P.fecha_emision)
+AND Tiempo.mes = MONTH(P.fecha_emision)
+
+-- Dim_Temporada
+INNER JOIN ESE_CU_ELE.BI_Dim_Temporada Temporada
+ON MONTH(P.fecha_desde)
+BETWEEN Temporada.mes_inicio
+AND Temporada.mes_fin
+
+-- Dim_Rango_Etario_Agente
+INNER JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Agente Rango_Agente
+ON
+(
+DATEDIFF(YEAR,Agente.fecha_nacimiento,P.fecha_emision)
+-
+CASE
+WHEN DATEADD(YEAR,
+DATEDIFF(YEAR,Agente.fecha_nacimiento,P.fecha_emision),
+Agente.fecha_nacimiento)>P.fecha_emision
+THEN 1
+ELSE 0
+END
+)
+BETWEEN Rango_Agente.min_edad
+AND Rango_Agente.max_edad
+
+-- Dim_Estado
+INNER JOIN ESE_CU_ELE.BI_Dim_Estado_De_Propuesta EstadoBI
+ON EstadoBI.estado = Estado.estado
+
+GROUP BY
+Tiempo.tiempo_id,
+Temporada.temporada_id,
+Rango_Agente.rango_etario_agente_id,
+EstadoBI.estado_de_propuesta_id;
+
 END; -- FIN PROCEDIMIENTO migracion de los hechos
 GO
 
@@ -494,8 +615,74 @@ SELECT
 FROM ESE_CU_ELE.BI_Hecho_Solicitud_De_Cotizacion AS Hecho_Solicitudes
 JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Cliente Rango_Etario_Cliente ON Rango_Etario_Cliente.rango_etario_cliente_id = Hecho_Solicitudes.rango_etario_cliente_id
 JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo ON Tiempo.tiempo_id = Hecho_Solicitudes.tiempo_id
-GROUP BY Rango_Etario_Cliente.rango_etario, Tiempo.cuatrimestre
+GROUP BY Rango_Etario_Cliente.rango_etario, Tiempo.cuatrimestre;
 GO
+
+
+--------------- 5. Tasa de aceptación de propuestas ---------------
+CREATE VIEW ESE_CU_ELE.BI_View_Tasa_De_Aceptacion_De_Propuestas
+AS
+SELECT
+    Tiempo.cuatrimestre,
+    CAST( SUM(Hecho_Propuesta.cantidad_propuestas_aceptadas) * 100.0
+        / NULLIF(SUM(Hecho_Propuesta.cantidad_propuestas), 0) AS DECIMAL(18,2)) AS tasa_aceptacion
+FROM ESE_CU_ELE.BI_Hecho_Propuesta AS Hecho_Propuesta
+JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo
+    ON Tiempo.tiempo_id = Hecho_Propuesta.tiempo_id
+GROUP BY
+    Tiempo.cuatrimestre;
+GO
+
+
+--------------- 6. Cotización promedio por temporada ---------------
+CREATE VIEW ESE_CU_ELE.BI_View_Cotizacion_Promedio_Por_Temporada
+AS
+SELECT
+    Tiempo.anio,
+    Temporada.temporada,
+    CAST( SUM(Hecho_Propuesta.suma_importe_total) * 1.0
+        / NULLIF(SUM(Hecho_Propuesta.cantidad_propuestas), 0) AS DECIMAL(18,2)) AS cotizacion_promedio
+FROM ESE_CU_ELE.BI_Hecho_Propuesta AS Hecho_Propuesta
+JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo
+    ON Tiempo.tiempo_id = Hecho_Propuesta.tiempo_id
+JOIN ESE_CU_ELE.BI_Dim_Temporada Temporada
+    ON Temporada.temporada_id = Hecho_Propuesta.temporada_id
+GROUP BY
+    Tiempo.anio,
+    Temporada.temporada;
+GO
+
+
+--------------- 7. Tiempo promedio de respuesta ---------------
+CREATE VIEW ESE_CU_ELE.BI_View_Tiempo_Promedio_De_Respuesta
+AS
+SELECT
+	Tiempo.anio,
+    Tiempo.mes,
+    Rango_Etario_Agente.rango_etario,
+    CAST(SUM(Hecho_Propuesta.suma_dias_en_responder) * 1.0
+        / NULLIF(SUM(Hecho_Propuesta.cantidad_propuestas), 0) AS DECIMAL(18,2)) AS tiempo_promedio_respuesta
+FROM ESE_CU_ELE.BI_Hecho_Propuesta AS Hecho_Propuesta
+JOIN ESE_CU_ELE.BI_Dim_Tiempo Tiempo
+    ON Tiempo.tiempo_id = Hecho_Propuesta.tiempo_id
+JOIN ESE_CU_ELE.BI_Dim_Rango_Etario_Agente Rango_Etario_Agente
+    ON Rango_Etario_Agente.rango_etario_agente_id = Hecho_Propuesta.rango_etario_agente_id
+GROUP BY
+	Tiempo.anio,
+    Tiempo.mes,
+    Rango_Etario_Agente.rango_etario;
+GO
+
+
+--------------- 8. Desvío de presupuesto ---------------
+CREATE VIEW ESE_CU_ELE.BI_View_Desvio_De_Presupuesto
+AS
+SELECT
+    CAST( SUM(Hecho_Propuesta.suma_desvio_presupuestos) * 1.0
+        / NULLIF(SUM(Hecho_Propuesta.cantidad_presupuestos), 0) AS DECIMAL(18,2)) AS desvio_promedio
+FROM ESE_CU_ELE.BI_Hecho_Propuesta AS Hecho_Propuesta;
+GO
+
 
 --------------- 9. Promedio mensual de puntaje por aspecto de la encuesta ---------------
 
