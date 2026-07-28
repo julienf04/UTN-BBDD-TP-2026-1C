@@ -17,10 +17,10 @@ El objetivo del trabajo práctico es diseñar e implementar una base de datos pa
 ## Contenido del repositorio
 
 - [Enunciado](Enunciado/Enunciado.pdf): enunciado del trabajo práctico.
-- [Solucion](Solucion/): solución de nuestro equipo.
-- [Calificacion](Calificacion/Calificacion.pdf): la calificacion a nuestra solución. Está aprobado.
+- [Solucion](Solucion/): nuestra solución.
+- [Calificacion](Calificacion/Calificacion.pdf): la calificación a nuestra solución. Está aprobado.
 - [Tests](Tests/): scripts de prueba para detectar posibles inconsistencias graves antes de la entrega. Estos scripts fueron utilizados solamente durante el desarrollo, no formaron parte de la entrega final.
-- [Eliminadores](Eliminadores/): la ejecución de la solución crea nuevos objetos en la base de datos. Antes de volver a ejecutarla, es necesario eliminar las estructuras generadas. Estos scripts realizan esa tarea automáticamente y restauran la base de datos a su estado inicial.
+- [Eliminadores](Eliminadores/): la ejecución de la solución crea nuevos objetos en la base de datos. Antes de volver a ejecutarla, es necesario eliminar las estructuras generadas. Estos scripts realizan esa tarea automáticamente y restauran la base de datos a su estado inicial. Fueron utilizados solamente durante el desarrollo, no formaron parte de la entrega final.
 
 ## Integrantes
 
