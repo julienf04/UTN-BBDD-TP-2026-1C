@@ -1,3 +1,7 @@
+### Enunciado
+
+[Enunciado](Enunciado.pdf)
+
 ### Scripts
 
 En el enunciado, en la parte de Implementación (página 16), se mencionan unos scripts. Originalmente tenían algunos errores y cosas faltantes. Aquí dejo los scripts corregidos:
