@@ -8,7 +8,7 @@ Este repositorio contiene el **enunciado** y la **solución** del **Trabajo Prá
 - **Carrera**: Ingeniería en Sistemas de Información
 - **Materia**: Bases de Datos
 - **Cursada**: 1er cuatrimestre del 2026
-- [Página web](https://sites.google.com/site/gestiondedatosutn/p%C3%A1gina-principal)
+- [Página web de la materia](https://sites.google.com/site/gestiondedatosutn/p%C3%A1gina-principal)
 
 ## Objetivo
 
