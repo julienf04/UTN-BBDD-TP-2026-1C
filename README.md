@@ -1,6 +1,6 @@
 # Trabajo Práctico de Bases de Datos
 
-Este repositorio contiene el **enunciado** y la **solución** del **trabajo práctico grupal** de la materia **Bases de Datos**, correspondiente a la carrera Ingeniería en Sistemas de Información de la **UTN FRBA** (Universidad Tecnológica Nacional - Facultad Regional Buenos Aires).
+Este repositorio contiene el **enunciado** y nuestra **solución** del **trabajo práctico grupal** de la materia **Bases de Datos**, correspondiente a la carrera Ingeniería en Sistemas de Información de la **UTN FRBA** (Universidad Tecnológica Nacional - Facultad Regional Buenos Aires).
 
 ## Información académica
 
